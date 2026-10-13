@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import threading
 from dataclasses import dataclass
 from functools import cached_property, lru_cache
@@ -16,6 +17,8 @@ from .morphology import (
     TOKEN, MorphologyUnavailableError, lemma_forms, normalized_token,
     rule_keys as morphology_rule_keys,
 )
+
+MAX_PREPARED_WORDS = 150_000
 
 
 class ModelUnavailableError(RuntimeError):
@@ -127,11 +130,17 @@ class EmbeddingStore(_WordResolver):
         vocabulary_path: str | Path,
         *,
         denylist_path: str | Path | None = None,
+        target_vocabulary_path: str | Path | None = None,
+        require_prepared: bool = False,
         binary: bool = False,
         limit: int | None = None,
     ) -> None:
         self.model_path = Path(model_path)
         self.vocabulary_path = Path(vocabulary_path)
+        # The small matrix is only for puzzle generation, hints, and landmarks.
+        # Runtime guess membership comes from the prepared model itself.
+        self.target_vocabulary_path = Path(target_vocabulary_path) if target_vocabulary_path else self.vocabulary_path
+        self.require_prepared = require_prepared
         self.denylist_path = Path(denylist_path) if denylist_path else None
         self.binary = binary
         self.limit = limit
@@ -144,6 +153,8 @@ class EmbeddingStore(_WordResolver):
         self._fingerprint = ""
         self._blocked: frozenset[str] = frozenset()
         self._indices: dict[str, int] = {}
+        self._manifest: dict = {}
+        self._target_requested_count = 0
 
     def status(self) -> dict:
         return {
@@ -154,6 +165,12 @@ class EmbeddingStore(_WordResolver):
             "path": str(self.model_path),
             "exists": self.model_path.is_file(),
             "curated_words": len(self._words),
+            "target_vocabulary_size": len(self._words),
+            "requested_guess_count": self._manifest.get("requested_word_count"),
+            "missing_guess_count": len(self._manifest.get("missing_words", [])),
+            "requested_target_count": self._target_requested_count,
+            "reduced": self._manifest.get("reduced_vocabulary"),
+            "memory_mapped": isinstance(self._model.vectors, np.memmap) if self._model is not None else False,
             "vocabulary_size": len(self._model) if self._model is not None else 0,
             "error": self._error,
             "fingerprint": self._fingerprint or None,
@@ -172,19 +189,31 @@ class EmbeddingStore(_WordResolver):
                         f"Google News model not found at {self.model_path}. "
                         "Run backend/scripts/prepare_model.py before starting a game."
                     )
+                if self.binary or self.model_path.name.endswith((".bin", ".bin.gz")):
+                    raise ValueError("Runtime requires a reduced native .kv model. Extract allowed_guesses.txt with backend.scripts.prepare_model; never load the original Google News binary here.")
+                if self.model_path.suffix != ".kv":
+                    raise ValueError("SEMANTIX_MODEL_PATH must point to a prepared .kv file.")
+                manifest_path = self.model_path.with_suffix(".kv.manifest.json")
+                manifest = json.loads(manifest_path.read_text()) if manifest_path.is_file() else {}
+                if self.require_prepared:
+                    if (manifest.get("reduced_vocabulary") is not True
+                            or manifest.get("dimensions") != DIMENSIONS
+                            or not 1 <= manifest.get("retained_word_count", 0) <= MAX_PREPARED_WORDS):
+                        raise ValueError("A reduced model preparation manifest with at most 150,000 retained words is required. Run backend.scripts.prepare_model with allowed_guesses.txt.")
                 from gensim.models import KeyedVectors
 
-                if self.binary or self.model_path.name.endswith((".bin", ".bin.gz")):
-                    model = KeyedVectors.load_word2vec_format(
-                        str(self.model_path), binary=True, limit=self.limit
-                    )
-                else:
-                    model = KeyedVectors.load(str(self.model_path), mmap="r")
+                model = KeyedVectors.load(str(self.model_path), mmap="r")
                 if model.vector_size != DIMENSIONS:
                     raise ValueError(f"Expected the 300-dimensional Google News model; received {model.vector_size} dimensions.")
+                if len(model) > MAX_PREPARED_WORDS:
+                    raise ValueError("This model exceeds the 150,000-word reduced-model limit; prepare a smaller guess vocabulary.")
+                if self.require_prepared and (len(model) != manifest["retained_word_count"] or not isinstance(model.vectors, np.memmap)):
+                    raise ValueError("The prepared .kv, vector sidecar, and manifest must be deployed together and support memory mapping.")
                 self._blocked = frozenset(_read_words(self.denylist_path))
-                words = [word for word in _read_words(self.vocabulary_path)
+                requested_targets = _read_words(self.target_vocabulary_path)
+                words = [word for word in requested_targets
                          if TOKEN.fullmatch(word) and word not in self._blocked and word in model
+                         and not self.rule_keys(word) & self._blocked_keys
                          and (self.limit is None or model.key_to_index[word] < self.limit)]
                 if len(words) < 20:
                     raise ValueError("Fewer than 20 curated words are available in the model. Prepare a larger Google News vocabulary.")
@@ -194,6 +223,8 @@ class EmbeddingStore(_WordResolver):
                 fingerprint.update("\n".join(words).encode())
                 fingerprint.update(matrix.tobytes())
                 self._model, self._words, self._matrix = model, tuple(words), matrix
+                self._manifest = manifest
+                self._target_requested_count = len(requested_targets)
                 self._indices = {word: index for index, word in enumerate(words)}
                 self._fingerprint = fingerprint.hexdigest()[:24]
                 self._state, self._error = "ready", None
@@ -204,6 +235,7 @@ class EmbeddingStore(_WordResolver):
 
     @property
     def words(self) -> tuple[str, ...]:
+        """Retained curated level words, never the broad accepted-guess pool."""
         self.load()
         return self._words
 

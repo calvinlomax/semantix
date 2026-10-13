@@ -186,6 +186,8 @@ class LevelGenerator:
         return result.best_by_depth[-1].path[0]
 
     def validate(self, level: Level) -> bool:
+        if level.start_word not in self.store.words or level.target_word not in self.store.words:
+            return False
         if level.model_fingerprint != self.store.fingerprint:
             return False
         if level.start_word == level.target_word or level.difficulty not in self.MOVE_LIMITS:

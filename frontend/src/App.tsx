@@ -38,7 +38,7 @@ function SetupPanel() {
   const {busy, setupError, initialize} = useGameStore()
   return <div className="setup-panel"><div className="setup-orbit"><Orbit size={54} strokeWidth={0.9}/><span/></div><span className="eyebrow">A UNIVERSE OF MEANING</span><h2>{busy ? 'Opening your semantic space…' : 'Your journey starts with words.'}</h2><p>{busy ? 'Preparing the Word2Vec engine and finding your route. The first load can take a moment.' : 'Semantix uses real Google Word2Vec embeddings. Prepare the model once, then explore a new kind of word puzzle.'}</p>
     {setupError && <div className="setup-error" role="alert"><Info size={16}/><span>{setupError}</span></div>}
-    {!busy && <><div className="setup-command"><span>ONE-TIME SETUP · FROM THE PROJECT ROOT</span><code>.venv/bin/python -m backend.scripts.prepare_model --download --vocabulary data/vocabulary/words.txt</code></div><button className="primary-button" onClick={initialize}><RefreshCw size={16}/> Reconnect to the engine</button><p className="setup-footnote">See README.md for model download, environment setup, and server commands.</p></>}
+    {!busy && <><div className="setup-command"><span>ONE-TIME SETUP · FROM THE PROJECT ROOT</span><code>.venv/bin/python -m backend.scripts.prepare_model --download --vocabulary data/vocabulary/allowed_guesses.txt</code></div><button className="primary-button" onClick={initialize}><RefreshCw size={16}/> Reconnect to the engine</button><p className="setup-footnote">See README.md for model download, environment setup, and server commands.</p></>}
     {busy && <LoaderCircle size={21} className="spin"/>}
   </div>
 }

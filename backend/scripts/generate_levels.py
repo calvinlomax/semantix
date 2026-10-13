@@ -29,6 +29,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model", type=Path, default=settings.model_path)
     parser.add_argument("--vocabulary", type=Path, default=settings.vocabulary_path)
+    parser.add_argument("--target-vocabulary", type=Path, default=settings.target_vocabulary_path)
     parser.add_argument("--denylist", type=Path, default=settings.blocked_path)
     parser.add_argument("--output", type=Path, default=settings.levels_path)
     parser.add_argument("--count-per-difficulty", "--count", type=int, default=12)
@@ -43,7 +44,9 @@ def main() -> None:
     args = parser.parse_args()
     started = time.monotonic()
     try:
-        store = EmbeddingStore(args.model, args.vocabulary, denylist_path=args.denylist, binary=args.binary, limit=args.model_limit).load()
+        store = EmbeddingStore(args.model, args.vocabulary, denylist_path=args.denylist,
+                               target_vocabulary_path=args.target_vocabulary, require_prepared=True,
+                               binary=args.binary, limit=args.model_limit).load()
         config = PhysicsConfig(momentum=args.momentum, impulse=args.impulse, movement_model=args.movement_model)
         generator = LevelGenerator(store, config, beam_width=args.beam_width, candidate_count=args.candidate_count)
         print(f"Loaded {len(store.words):,} curated Google News words ({store.fingerprint}).", flush=True)

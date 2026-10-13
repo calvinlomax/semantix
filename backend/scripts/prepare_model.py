@@ -7,11 +7,13 @@ from __future__ import annotations
 
 import argparse
 import gzip
+import hashlib
 import json
 import os
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+from tempfile import TemporaryDirectory
 from typing import BinaryIO
 
 import numpy as np
@@ -19,6 +21,8 @@ import numpy as np
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 MODEL_NAME = "word2vec-google-news-300"
 SOURCE_URL = "https://github.com/RaRe-Technologies/gensim-data/releases/tag/word2vec-google-news-300"
+DEFAULT_VOCABULARY = PROJECT_ROOT / "data/vocabulary/allowed_guesses.txt"
+MAX_GUESSES = 150_000
 
 
 def read_vocabulary(path: Path) -> list[str]:
@@ -101,16 +105,16 @@ def prepare(source: Path, output: Path, vocabulary: Path | None = None) -> dict:
 
     if not source.is_file():
         raise FileNotFoundError(f"Source model not found: {source}. Supply --source or --download.")
-    if vocabulary:
-        words, matrix, detail = extract_curated(source, read_vocabulary(vocabulary))
-        model = KeyedVectors(vector_size=300)
-        model.add_vectors(words, matrix)
-    else:
-        print("Loading the full source model; allow roughly 8–12 GB of free RAM.", flush=True)
-        model = KeyedVectors.load_word2vec_format(str(source), binary=True)
-        if model.vector_size != 300:
-            raise ValueError(f"Expected 300 dimensions, found {model.vector_size}.")
-        detail = {"original_word_count": len(model), "retained_word_count": len(model)}
+    if output.suffix != ".kv":
+        raise ValueError("Use a .kv output filename for the reduced native model.")
+    vocabulary = vocabulary or DEFAULT_VOCABULARY
+    requested = read_vocabulary(vocabulary)
+    if not 1 <= len(requested) <= MAX_GUESSES:
+        raise ValueError("Request 1–150,000 words; 50,000–100,000 guess candidates is recommended.")
+    words, matrix, detail = extract_curated(source, requested)
+    model = KeyedVectors(vector_size=300)
+    model.add_vectors(words, matrix)
+    del matrix
     manifest = {
         "schema_version": 1,
         "model_name": MODEL_NAME,
@@ -120,8 +124,10 @@ def prepare(source: Path, output: Path, vocabulary: Path | None = None) -> dict:
         "dimensions": model.vector_size,
         "vector_dtype": str(model.vectors.dtype),
         "prepared_at_utc": datetime.now(timezone.utc).isoformat(),
-        "reduced_vocabulary": vocabulary is not None,
-        "vocabulary_file": vocabulary.name if vocabulary else None,
+        "reduced_vocabulary": True,
+        "vocabulary_file": vocabulary.name,
+        "vocabulary_sha256": hashlib.sha256(vocabulary.read_bytes()).hexdigest(),
+        "missing_word_count": len(detail["missing_words"]),
         "format": "gensim-keyedvectors-with-separate-vectors",
         **detail,
     }
@@ -129,14 +135,27 @@ def prepare(source: Path, output: Path, vocabulary: Path | None = None) -> dict:
     output.parent.mkdir(parents=True, exist_ok=True)
     # Only native Gensim sidecar .npy vectors support mmap='r'. The original
     # Word2Vec binary cannot be memory-mapped by load_word2vec_format.
-    model.save(str(output), separately=["vectors"])
-    output.with_suffix(output.suffix + ".manifest.json").write_text(
-        json.dumps(manifest, indent=2) + "\n", encoding="utf-8"
-    )
-    check = KeyedVectors.load(str(output), mmap="r")
-    if not isinstance(check.vectors, np.memmap):
-        raise RuntimeError("Prepared vectors were not saved as a memory-mappable sidecar.")
-    print(f"Prepared {len(check):,} authentic 300-D vectors: {output}", flush=True)
+    # Build and check the entire artifact before replacing the active files.
+    # Stop/restart the single backend process when publishing a new model.
+    with TemporaryDirectory(prefix=".prepare-", dir=output.parent) as staging:
+        staged = Path(staging) / output.name
+        model.save(str(staged), separately=["vectors"])
+        check = KeyedVectors.load(str(staged), mmap="r")
+        if not isinstance(check.vectors, np.memmap):
+            raise RuntimeError("Prepared vectors were not saved as a memory-mappable sidecar.")
+        manifest["artifacts"] = {}
+        for path in (staged, Path(str(staged) + ".vectors.npy")):
+            digest = hashlib.sha256()
+            with path.open("rb") as handle:
+                for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                    digest.update(chunk)
+            manifest["artifacts"][path.name] = {"bytes": path.stat().st_size, "sha256": digest.hexdigest()}
+        del check
+        staged_manifest = staged.with_suffix(".kv.manifest.json")
+        staged_manifest.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+        for path in (Path(str(staged) + ".vectors.npy"), staged, staged_manifest):
+            path.replace(output.parent / path.name)
+    print(f"Prepared {len(model):,}/{len(requested):,} requested authentic 300-D vectors: {output}", flush=True)
     if detail.get("missing_words"):
         print(f"Skipped {len(detail['missing_words'])} unavailable words (listed in the manifest).", flush=True)
     return manifest
@@ -148,7 +167,7 @@ def main() -> None:
     source_group.add_argument("--source", type=Path, help="Original Google News .bin or .gz binary")
     source_group.add_argument("--download", action="store_true", help="Download the genuine source using gensim.downloader")
     parser.add_argument("--output", type=Path, default=PROJECT_ROOT / "data/models/google-news-300.kv")
-    parser.add_argument("--vocabulary", type=Path, help="Extract this allowlist without loading the full source into RAM")
+    parser.add_argument("--vocabulary", type=Path, default=DEFAULT_VOCABULARY, help="Guess candidates to stream from the source; defaults to allowed_guesses.txt. Never loads the full model.")
     parser.add_argument("--cache-dir", type=Path, default=PROJECT_ROOT / "data/downloads")
     args = parser.parse_args()
     try:

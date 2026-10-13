@@ -16,7 +16,8 @@ def project_path(value: str) -> Path:
 @dataclass(frozen=True)
 class Settings:
     model_path: Path = field(default_factory=lambda: project_path(os.getenv("SEMANTIX_MODEL_PATH", "data/models/google-news-300.kv")))
-    vocabulary_path: Path = field(default_factory=lambda: project_path(os.getenv("SEMANTIX_VOCABULARY_PATH", "data/vocabulary/words.txt")))
+    vocabulary_path: Path = field(default_factory=lambda: project_path(os.getenv("SEMANTIX_VOCABULARY_PATH", "data/vocabulary/allowed_guesses.txt")))
+    target_vocabulary_path: Path = field(default_factory=lambda: project_path(os.getenv("SEMANTIX_TARGET_VOCABULARY_PATH", "data/vocabulary/level_words.txt")))
     blocked_path: Path = field(default_factory=lambda: project_path(os.getenv("SEMANTIX_BLOCKED_PATH", "data/vocabulary/blocked.txt")))
     levels_path: Path = field(default_factory=lambda: project_path(os.getenv("SEMANTIX_LEVELS_PATH", "data/levels/catalog.json")))
     model_binary: bool = field(default_factory=lambda: os.getenv("SEMANTIX_MODEL_BINARY", "false").lower() == "true")

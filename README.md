@@ -24,31 +24,59 @@ All Python packages stay in the virtual environment. Do not install into a syste
 
 `prepare_nlp` downloads the small NLTK WordNet corpus once into ignored `data/nltk_data/`. Set `SEMANTIX_NLTK_DATA` to use another directory. Word recognition then runs locally, without request-time downloads or repeated NLP initialization. If the corpus is missing, word validation returns an actionable setup error.
 
+### Separate guesses from puzzle words
+
+The repository includes two generated vocabulary files:
+
+| File | Role | Current count |
+| --- | --- | ---: |
+| `data/vocabulary/allowed_guesses.txt` | Broad source list for model extraction | 94,037 |
+| `data/vocabulary/level_words.txt` | Familiar words eligible for puzzle starts and targets | 2,676 |
+
+**The prepared `.kv` is the runtime vocabulary authority.** Being listed in `allowed_guesses.txt` does not guarantee an embedding exists. A word absent from that text file may still be accepted through case normalization or an unambiguous lemma present in the model. Level words must be in the small target list **and** have exact embeddings; currently 2,674 are retained. Level generation, hint searches, and landmarks use only that small retained matrix.
+
+The committed files can be used directly. To rebuild them deterministically:
+
+```sh
+.venv/bin/python -m pip install -r backend/requirements-preparation.txt
+.venv/bin/python -m backend.scripts.build_large_vocab --size 100000
+```
+
+The builder combines wordfreq English frequency data, WordNet common lexical forms and inflections, and the original curated `words.txt`. It filters to lowercase ASCII words of 2–24 letters, excludes punctuation/numbers and blocked families, and removes words whose lexical evidence consists only of proper names. The level list preserves the original manually reviewed words and their ordering; it does not draw targets from the broad frequency list. `build_manifest.json` records source versions, counts, and output hashes. Output is capped at the requested size rather than padded with unrecognized words. **50,000–100,000 guess candidates** is recommended; the preparation/runtime ceiling is 150,000. `wordfreq` is a build-only dependency.
+
 ### Prepare the genuine embeddings
 
-For a fresh checkout, download the official Google News model and retain the curated gameplay vocabulary:
+For a fresh checkout, download the official Google News archive and stream only the requested guess words into a reduced model:
 
 ```sh
 .venv/bin/python -m backend.scripts.prepare_model \
   --download \
-  --vocabulary data/vocabulary/words.txt \
+  --vocabulary data/vocabulary/allowed_guesses.txt \
   --output data/models/google-news-300.kv
 ```
 
-The download is about **1.7 GB**. Curated extraction streams the original binary and retains its exact float32 values. It does not train, approximate, generate, or replace embeddings. The resulting model is only a few MB, while keeping all **300 dimensions**. `data/models/google-news-300.kv.manifest.json` records source, retained vocabulary, missing words, and preparation metadata. The full downloaded archive is cached in ignored `data/downloads/`.
+The source download is about **1.7 GB**, cached in ignored `data/downloads/`. Extraction streams it without loading all three million vectors into RAM and preserves exact original float32 values in all **300 dimensions**. The current build retains **73,604 embeddings** from 94,037 candidates. Its vector sidecar is **88.3 MB**, plus approximately 1.7 MB of metadata. No vectors are trained, approximated, or replaced.
 
 If you already have the original binary or gzip archive:
 
 ```sh
 .venv/bin/python -m backend.scripts.prepare_model \
   --source data/models/word2vec-google-news-300.gz \
-  --vocabulary data/vocabulary/words.txt \
+  --vocabulary data/vocabulary/allowed_guesses.txt \
   --output data/models/google-news-300.kv
 ```
 
-To prepare **all approximately three million original words and phrases**, omit `--vocabulary`. Allow roughly **8–12 GB of free memory** for conversion and several GB of disk space for the resulting native model. A machine with 16 GB RAM or more is recommended for the full workflow. The original float32 vector matrix alone occupies about 3.6 GB; token indexes and temporary allocations add memory. Curated preparation is suitable for modest hardware. In either mode, puzzle generation only uses the curated familiar-word list. Full-model lookup additionally accepts available lowercase alphabetic words that pass validation.
+An archive at `data/downloads/GoogleNews-vectors-negative300.bin.gz` works with the same command by changing `--source`. Omitting `--vocabulary` now defaults to `allowed_guesses.txt`; it never enables full-model conversion. The original Google News binary is an offline preparation input only. **Do not load it at runtime or deploy it to Render.**
 
-The script uses Gensim's downloader for `word2vec-google-news-300`, or `KeyedVectors.load_word2vec_format(..., binary=True)` for full original-file conversion. It saves the native `.kv` metadata and a separate `.kv.vectors.npy` array. **Keep these together**: only this native format supports the application's `KeyedVectors.load(..., mmap='r')`; the original binary is never passed to an unsupported mmap API. Set `SEMANTIX_MODEL_BINARY=true` to load an original binary directly, with the associated RAM cost. Optional `SEMANTIX_MODEL_LIMIT` restricts original-file loading to its first N entries and may exclude desired words.
+Preparation produces three files that must stay together: `google-news-300.kv`, `google-news-300.kv.vectors.npy`, and `google-news-300.kv.manifest.json`. The manifest records requested/retained/missing counts, every missing word, source identity, vocabulary hash, and artifact sizes/checksums. Output is validated in a staging directory before publication. Stop/restart the backend when replacing model files. The application uses `KeyedVectors.load(..., mmap='r')`, requires a reduced-model manifest and memory-mapped vectors, and rejects original binaries and full-size models. Keep `SEMANTIX_MODEL_BINARY=false` and `SEMANTIX_MODEL_LIMIT` empty.
+
+Configuration defaults are:
+
+```dotenv
+SEMANTIX_MODEL_PATH=data/models/google-news-300.kv
+SEMANTIX_VOCABULARY_PATH=data/vocabulary/allowed_guesses.txt
+SEMANTIX_TARGET_VOCABULARY_PATH=data/vocabulary/level_words.txt
+```
 
 ### Generate validated levels
 
@@ -56,7 +84,7 @@ The script uses Gensim's downloader for `word2vec-google-news-300`, or `KeyedVec
 .venv/bin/python -m backend.scripts.generate_levels --count 12 --seed 42
 ```
 
-This creates `data/levels/catalog.json` with real-model calibration, reproducible solution certificates, and projection landmarks. The catalog is small and can be versioned; downloaded weights cannot. Changing the vocabulary, model, momentum, impulse, or movement model requires regenerating the catalog. The server checks its model fingerprint, physics settings, and solution certificates before accepting it. If no catalog exists, first launch deterministically generates a small nine-level catalog in memory; save an explicit catalog for consistent daily puzzles across installations.
+This creates `data/levels/catalog.json` with real-model calibration, reproducible solution certificates, and projection landmarks. `--target-vocabulary` overrides the small target file; `--vocabulary` identifies the broad guess preparation source. The catalog is small and can be versioned. Changing the retained target list/order, target vectors, or physics requires regeneration. **Adding guesses from the same original Google News source does not change the target fingerprint or invalidate the existing catalog.** The server checks the fingerprint, target membership, physics, and solution certificates before accepting it. If no catalog exists, first launch deterministically generates a small nine-level catalog in memory; save an explicit catalog for consistent daily puzzles across installations.
 
 ### Start the app
 
@@ -90,7 +118,9 @@ Open **http://127.0.0.1:5173**. Vite proxies `/api` to the backend. API document
 
 ### Word recognition
 
-The server first looks for the exact submitted model entry, then applies case/Unicode presentation normalization, then uses NLTK WordNet lemmatization as a fallback. For example, an unavailable `prepared` can use `prepare`, `studies` can use `study`, and `children` can use `child`. An available exact form always keeps its own original embedding. The move history keeps your submitted spelling and shows a subtle notice such as `"prepared" accepted using "prepare"` when another entry is used.
+The server normalizes the token for validation, requires one alphabetic word of 2–24 letters, and rejects blocked tokens or word families. It then tries the original submitted model entry, the normalized lowercase entry, and finally WordNet base-form candidates. Multiple distinct candidates are rejected as ambiguous; a single candidate is accepted only if present in the prepared model. Otherwise the word is unavailable. The backend applies target and level-specific restrictions before accepting the move.
+
+For example, an unavailable `prepared` can use `prepare`. In the expanded model, `prepared` now has its own exact vector and uses it. An available exact form always wins over lemmatization. The move history keeps your submitted spelling and shows a subtle notice such as `"Prepared" accepted using "prepared"` when another entry is used. Grammatical fallback can accept additional forms beyond the 73,604 exact model entries.
 
 There are no fuzzy spelling matches or synonym substitutions. When multiple base forms are plausible for an isolated word, the server asks for the intended base form rather than guessing: `better`, for example, can mean `good` or `well`. Exact entries remain usable even when their possible lemmas are ambiguous. Unknown words are rejected without spending a move.
 
@@ -111,7 +141,7 @@ backend/
   app/engine/             Embeddings, physics, scoring, PCA, level search
   scripts/                Model conversion, WordNet setup, calibrated levels
   tests/                  Synthetic 300-D unit/API tests and real-model integration
-data/vocabulary/          Curated familiar words and an additional denylist
+data/vocabulary/          Broad guess candidates, curated level words, denylist
 data/levels/              Validated catalog and calibration metadata
 ```
 
@@ -181,17 +211,21 @@ See [VERIFICATION.md](VERIFICATION.md) for the local verification record and rep
 
 ## Performance and configuration
 
-`.env.example` lists model/corpus paths, original binary limits, physics, allowed local origins, and session bounds. Weights load once per backend process, with native vector arrays memory-mapped read-only. Curated embeddings are normalized once into a compact matrix; other lookups, lexical analyses, and resolved forms use bounded caches. Gameplay performs 300-dimensional arithmetic and reuses projection anchors. Search scans only the curated matrix, never all three million tokens.
+`.env.example` lists model/corpus paths, separate guess/target sources, physics, allowed local origins, and session bounds. Reduced weights load once per backend process, with native vector arrays memory-mapped read-only. Only curated level embeddings are normalized into a compact search matrix; other lookups, lexical analyses, and resolved forms use bounded caches. Gameplay performs 300-dimensional arithmetic and reuses projection anchors. Search scans only the curated matrix, never the broad guess pool or all three million source tokens. `/api/model/status` reports loaded guess entries, retained target count, preparation counts, and memory-mapping status separately.
 
 The 3D renderer is loaded on demand and renders only when the scene changes, with capped pixel density and a small landmark set. The 2D fallback avoids downloading the Three.js chunk. Preview requests debounce for 350 ms; replaced requests are aborted and stale responses are discarded. Preview and submission share one backend calculation path, under the session lock.
 
 Use **one Uvicorn worker** with the in-memory store. For multiple workers or durable sessions, replace `GameStore` with shared storage and keep moves atomic. Backend restarts expire active sessions; completed browser statistics survive. The dev frontend uses Vite's `/api` proxy; an independently hosted production build needs equivalent same-origin reverse proxy routing and a persistent Python backend. `npm --prefix frontend run build` outputs `frontend/dist/`.
 
+### Render and model artifacts
+
+Keep the generated text vocabularies and catalog in Git. Model files, original archives, and downloaded WordNet data remain ignored. Store the three prepared model files together in versioned object storage or release assets, then download that exact artifact during the Render build or place it on a persistent disk. Render must load the reduced `.kv`, not extract the original Google News archive during startup. See [DEPLOYMENT.md](DEPLOYMENT.md) for download commands, checksums, environment settings, and persistent-disk timing.
+
 ## Known limitations
 
 - The included catalog is finite, so free-play and daily puzzles eventually repeat. Generate a larger catalog for more variety. Installations must share both model/vocabulary and the exact catalog for identical daily selection.
 - Difficulty and temperature bands are measured against genuine vectors and solver trajectories, but have not undergone a broad human playtest.
-- A reduced vocabulary accepts additional grammatical forms only when a safe base form exists in that subset. Words without an embedding or an unambiguous available base are rejected. Prepare the full model for broader input coverage. News-trained embeddings can encode historical biases; the curated word list limits puzzle content but cannot remove those biases from the vectors.
+- A reduced vocabulary accepts additional grammatical forms only when a safe base form exists in that subset. Words without an embedding or an unambiguous available base are rejected. Add legitimate candidates to the guess preparation source and re-extract to expand coverage. Source filters reduce obvious names and news artifacts but are not a complete dictionary or content audit. News-trained embeddings can encode historical biases; the small curated level list keeps puzzle selection familiar but cannot remove those biases from the vectors.
 - Local statistics are browser metadata, not an account or an anti-cheat service. Clearing browser storage clears them. A daily result is deduplicated locally; there is no global leaderboard.
 - Only standard generated levels are enabled by default. Additional mechanics are experimental engine capabilities.
 - Both 2D and 3D maps distort 300-dimensional relationships; numerical cosine feedback remains authoritative. Dense labels can overlap as the 3D camera rotates; landmark labels can be hidden in Settings.

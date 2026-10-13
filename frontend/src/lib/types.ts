@@ -34,6 +34,8 @@ export interface Game {
 }
 export interface ModelStatus {
   status: 'unloaded' | 'loading' | 'ready' | 'error'; name: string; dimensions: number; vocabulary_size: number; message: string
+  target_vocabulary_size?: number; requested_guess_count?: number | null; missing_guess_count?: number
+  requested_target_count?: number | null; reduced?: boolean | null; memory_mapped?: boolean
 }
 export interface CompletedGame {
   id: string; daily_date: string | null; mode: Mode; status: 'won' | 'lost'; moves: number; similarity: number; rating: string | null; completed_at: string

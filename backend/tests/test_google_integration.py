@@ -47,3 +47,28 @@ def test_every_existing_catalog_certificate_remains_playable_with_word_resolutio
             if game["status"] == "won":
                 break
         assert game["status"] == "won", level.id
+
+
+def test_large_guess_model_and_common_words_preserve_curated_answers():
+    import numpy as np
+    from backend.scripts.build_large_vocab import read_words
+
+    settings = Settings()
+    service = GameService(settings)
+    service.ensure_ready()
+    store = service.embeddings
+    status = service.model_status()
+    assert 50_000 <= status["vocabulary_size"] <= 150_000
+    assert status["requested_guess_count"] > status["vocabulary_size"]
+    assert status["missing_guess_count"] == status["requested_guess_count"] - status["vocabulary_size"]
+    assert status["target_vocabulary_size"] == len(store.words) < status["vocabulary_size"] / 20
+    assert status["reduced"] and status["memory_mapped"]
+    targets = set(read_words(settings.target_vocabulary_path))
+    assert set(store.words) <= targets <= set(read_words(settings.vocabulary_path))
+    assert all(level.start_word in targets and level.target_word in targets for level in service.levels)
+    for word in ("computer", "beautiful", "running", "river", "school", "music", "science", "garden", "painting", "memory", "photosynthesis", "thermodynamics", "astronomy", "prepared"):
+        resolved = store.resolve(word)
+        assert resolved.resolution == "exact", word
+        assert resolved.vector.shape == (300,) and np.isfinite(resolved.vector).all()
+    # An expanded model must keep original calibrated vectors, not normalized replacements.
+    assert store.fingerprint == json.loads(settings.levels_path.read_text())["embedding_fingerprint"]

@@ -55,6 +55,7 @@ class GameService:
         self.settings = settings
         self.embeddings = embeddings if embeddings is not None else EmbeddingStore(
             settings.model_path, settings.vocabulary_path, denylist_path=settings.blocked_path,
+            target_vocabulary_path=settings.target_vocabulary_path, require_prepared=True,
             binary=settings.model_binary, limit=settings.model_limit,
         )
         self.physics = PhysicsConfig(momentum=settings.momentum, impulse=settings.impulse, movement_model=settings.movement_model)
@@ -67,9 +68,15 @@ class GameService:
         self._message = "Ready to explore." if levels is not None else "The model loads when you start your first round."
 
     def model_status(self):
+        details = self.embeddings.status()
         return {
             "status": self._state, "name": "Google News Word2Vec", "dimensions": 300,
-            "vocabulary_size": len(self.embeddings.words) if self._state == "ready" else 0,
+            "vocabulary_size": details.get("vocabulary_size", 0),
+            "target_vocabulary_size": details.get("target_vocabulary_size", details.get("curated_words", 0)),
+            "requested_guess_count": details.get("requested_guess_count"),
+            "missing_guess_count": details.get("missing_guess_count", 0),
+            "requested_target_count": details.get("requested_target_count"),
+            "reduced": details.get("reduced"), "memory_mapped": details.get("memory_mapped", False),
             "message": self._message,
         }
 
@@ -89,7 +96,8 @@ class GameService:
                 if not self.levels:
                     raise ValueError("No validated levels are available. Run the level-generation command in README.md.")
                 self._state = "ready"
-                self._message = f"Ready · {len(self.embeddings.words):,} curated words · 300 dimensions."
+                size = self.embeddings.status()["vocabulary_size"]
+                self._message = f"Ready · {size:,} guess embeddings · {len(self.embeddings.words):,} curated puzzle words · 300 dimensions."
             except Exception as exc:
                 self._state = "error"
                 self._message = str(exc)

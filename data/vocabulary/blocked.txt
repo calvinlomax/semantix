@@ -1,5 +1,5 @@
-# Additional defense for input in full-model deployments.
-# The curated allowlist is the primary content filter for generated puzzles.
+# Excluded word families in reduced-model preparation and runtime validation.
+# The separate curated level list controls generated puzzle content.
 fuck
 fucking
 shit

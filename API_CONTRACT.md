@@ -55,11 +55,29 @@ type MovePreview = Move & {
 
 Preview uses the same validation, resolution, physics, and scoring as submission. It does not change position, velocity, history, repetition tracking, move/hint/power budgets, status, or idempotency records. A subsequent submission with the same state, word, and power setting produces identical scores and coordinates. Include `expected_move` to reject a stale preview or submission with HTTP 409. Preview cannot accept client-supplied positions or velocities; unexpected request fields receive HTTP 422. The frontend debounces previews for 350 ms and discards responses after input or state changes. Daily previews default off; Free Play previews default on.
 
-`GET /api/model/status`: `{status: 'unloaded'|'loading'|'ready'|'error', name, dimensions, vocabulary_size, message}`. A new game triggers lazy initialization. `POST /api/model/load` explicitly warms it. Status can also expose `path` and `reduced`.
+`GET /api/model/status` reports guess-model entries separately from puzzle words:
+
+```ts
+type ModelStatus = {
+  status: 'unloaded' | 'loading' | 'ready' | 'error';
+  name: string; dimensions: 300; message: string;
+  vocabulary_size: number;         // Exact entries loaded from the reduced .kv.
+  target_vocabulary_size: number;  // Curated level words actually retained.
+  requested_guess_count: number | null; // From the preparation manifest.
+  missing_guess_count: number;
+  requested_target_count: number;
+  reduced: boolean | null;
+  memory_mapped: boolean;
+};
+```
+
+A new game triggers lazy initialization; `POST /api/model/load` explicitly warms it. Before loading, counts are zero or null. The current prepared model reports 73,604 entries, 2,674 retained targets, 94,037 requested guesses, and 20,433 missing guess candidates. The count of resolvable submitted forms can be larger because of normalization and lemmatization. Runtime requires the reduced native `.kv`, its vector sidecar, and its manifest; original Google News binaries/full-model artifacts produce a structured `model_unavailable` error.
 
 `POST /api/game/hint` with `{game_id}` returns `Resolution & {remaining: number}` (non-consuming move, consumes hint budget, easy 3 / medium 1 / hard 0). Hints must pass the same word/rule validation before consuming a hint. `GET /api/health` responds without loading the model.
 
-Word lookup prefers the exact model entry, then case/Unicode normalization, then an unambiguous WordNet lemma available in the model. `normalization_message` is, for example, `"Prepared" accepted using "prepare"`. History always preserves `word`; rendering and physics use the resolved embedding. Ambiguous missing forms such as `better` (good/well) are rejected with an explanation instead of selecting a meaning based on vocabulary availability. No synonyms or fuzzy spelling matches are used.
+Validation normalizes the token, rejects anything outside one alphabetic word of 2–24 letters, and checks blocked tokens/families. Lookup then prefers the exact original model entry, then the normalized lowercase entry, then an unambiguous WordNet lemma available in the model. `normalization_message` is, for example, `"Prepared" accepted using "prepared"`. History always preserves `word`; rendering and physics use the resolved embedding. Ambiguous missing forms such as `better` (good/well) are rejected with an explanation instead of selecting a meaning based on vocabulary availability. Exact `better` is accepted when retained. No synonyms or fuzzy spelling matches are used.
+
+`allowed_guesses.txt` supplies offline model preparation; it is not a runtime allowlist. A listed source word missing from the `.kv` is unavailable unless normalization/lemmatization resolves to another retained entry. Conversely, a form absent from the text file can resolve to a retained model entry. Puzzle starts/targets must belong to `level_words.txt` and have exact retained embeddings. Increasing the guess vocabulary does not expand the target pool.
 
 Target entry is rejected both directly and when a fallback resolves to the target model entry. Exact inflections with distinct embeddings retain their prior legality. Forbidden-word rules and optional `allow_repeats: false` mechanics compare grammatical families, so inflections cannot bypass those restrictions. Standard levels allow repeated non-target words. These rules apply to hints, previews, and committed moves.
 

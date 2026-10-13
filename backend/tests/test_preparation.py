@@ -1,5 +1,6 @@
 """Small synthetic binary fixtures verify the real-file preparation pipeline."""
 import gzip
+import hashlib
 import json
 
 import numpy as np
@@ -38,8 +39,8 @@ def test_preparation_produces_native_mmap_and_manifest(tmp_path):
     source = tmp_path / "fixture.bin"
     vectors = binary_fixture(source)
     vocabulary = tmp_path / "words.txt"
-    vocabulary.write_text("# comment\nriver\nforest\nriver\n\n")
-    assert read_vocabulary(vocabulary) == ["river", "forest"]
+    vocabulary.write_text("# comment\nriver\nforest\nriver\nmissing\n\n")
+    assert read_vocabulary(vocabulary) == ["river", "forest", "missing"]
     output = tmp_path / "prepared.kv"
     manifest = prepare(source, output, vocabulary)
     saved = KeyedVectors.load(str(output), mmap="r")
@@ -47,6 +48,13 @@ def test_preparation_produces_native_mmap_and_manifest(tmp_path):
     assert saved.vector_size == 300
     np.testing.assert_array_equal(saved["river"], vectors["river"])
     assert manifest["reduced_vocabulary"] is True
+    assert manifest["requested_word_count"] == 3
+    assert manifest["missing_words"] == ["missing"]
+    assert manifest["missing_word_count"] == 1
+    for name, detail in manifest["artifacts"].items():
+        artifact = output.parent / name
+        assert artifact.stat().st_size == detail["bytes"]
+        assert hashlib.sha256(artifact.read_bytes()).hexdigest() == detail["sha256"]
     assert json.loads(output.with_suffix(".kv.manifest.json").read_text())["retained_word_count"] == 2
 
 
@@ -65,3 +73,15 @@ def test_preparation_rejects_zero_vectors(tmp_path):
     source.write_bytes(b"1 300\nriver " + b"\0" * 1200)
     with pytest.raises(ValueError, match="None of the curated"):
         extract_curated(source, ["river"])
+
+
+def test_default_preparation_streams_guess_source_and_never_loads_full_model(tmp_path, monkeypatch):
+    from backend.scripts import prepare_model
+    source = tmp_path / "fixture.bin"
+    binary_fixture(source)
+    vocabulary = tmp_path / "allowed_guesses.txt"
+    vocabulary.write_text("river\nforest\n")
+    monkeypatch.setattr(prepare_model, "DEFAULT_VOCABULARY", vocabulary)
+    monkeypatch.setattr(KeyedVectors, "load_word2vec_format", lambda *_args, **_kwargs: pytest.fail("Full model loading is forbidden"))
+    manifest = prepare(source, tmp_path / "reduced.kv")
+    assert manifest["reduced_vocabulary"] and manifest["retained_word_count"] == 2
