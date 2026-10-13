@@ -1,0 +1,2290 @@
+{
+  "schema_version": 1,
+  "embedding_fingerprint": "92726a53d85e228a6a5d3bd7",
+  "model": "word2vec-google-news-300",
+  "curated_words": 2674,
+  "physics": {
+    "momentum": 0.35,
+    "impulse": 0.45,
+    "movement_model": "direction",
+    "gravity_strength": 0.0,
+    "power_multiplier": 1.5,
+    "forbidden_similarity": 0.75
+  },
+  "generation": {
+    "seed": 42,
+    "beam_width": 6,
+    "candidate_count": 32,
+    "generated_at_utc": "2026-10-13T21:55:02.521214+00:00",
+    "duration_seconds": 3.79,
+    "human_playtested": false
+  },
+  "levels": [
+    {
+      "id": "09072ecc457cc6e9f56d",
+      "difficulty": "easy",
+      "start_word": "steep",
+      "target_word": "rise",
+      "move_limit": 8,
+      "threshold": 0.640269011259079,
+      "solution": [
+        "drop",
+        "increase"
+      ],
+      "initial_similarity": 0.3241189122200012,
+      "feedback_bands": [
+        0.3865035891532898,
+        0.46968315839767455,
+        0.5497763216495514,
+        0.6383187532424927
+      ],
+      "landmark_words": [
+        "sharp",
+        "climb",
+        "modest",
+        "cliff",
+        "hike",
+        "climbing",
+        "flat",
+        "increase",
+        "drop",
+        "fall",
+        "decrease",
+        "jump",
+        "grow"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 2,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          0.28571368753910065,
+          0.5109150767326355
+        ],
+        "solution_similarities": [
+          0.5320678353309631,
+          0.7091526985168457
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "2395cbe6717cf5336640",
+      "difficulty": "easy",
+      "start_word": "jacket",
+      "target_word": "costume",
+      "move_limit": 8,
+      "threshold": 0.640269011259079,
+      "solution": [
+        "dress",
+        "puppet"
+      ],
+      "initial_similarity": 0.3628145456314087,
+      "feedback_bands": [
+        0.4215350031852722,
+        0.4998289465904236,
+        0.5710944533348083,
+        0.6338196992874146
+      ],
+      "landmark_words": [
+        "shirt",
+        "coat",
+        "pants",
+        "sweater",
+        "scarf",
+        "trousers",
+        "backpack",
+        "dress",
+        "doll",
+        "clothes",
+        "hat",
+        "blouse"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 2,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          0.28571368753910065,
+          0.5109150767326355
+        ],
+        "solution_similarities": [
+          0.5585494041442871,
+          0.6839998960494995
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "b6bba9cd2d2f10bf6791",
+      "difficulty": "easy",
+      "start_word": "medicine",
+      "target_word": "professor",
+      "move_limit": 8,
+      "threshold": 0.640269011259079,
+      "solution": [
+        "expert",
+        "scientist"
+      ],
+      "initial_similarity": 0.3137328326702118,
+      "feedback_bands": [
+        0.3761593967676163,
+        0.45939481556415557,
+        0.5411951005458832,
+        0.6380637049674988
+      ],
+      "landmark_words": [
+        "medical",
+        "doctor",
+        "pharmacist",
+        "therapy",
+        "treatment",
+        "clinic",
+        "surgeon",
+        "scientist",
+        "expert",
+        "director",
+        "author",
+        "science",
+        "student",
+        "lecture"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 2,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          0.28571368753910065,
+          0.5109150767326355
+        ],
+        "solution_similarities": [
+          0.5218213796615601,
+          0.7155585885047913
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "4ca27444b53c87909907",
+      "difficulty": "easy",
+      "start_word": "referee",
+      "target_word": "captain",
+      "move_limit": 8,
+      "threshold": 0.640269011259079,
+      "solution": [
+        "team",
+        "sailor",
+        "coach"
+      ],
+      "initial_similarity": 0.33504849672317505,
+      "feedback_bands": [
+        0.3985313817858696,
+        0.4823031559586525,
+        0.5564821317791939,
+        0.6219588160514832
+      ],
+      "landmark_words": [
+        "umpire",
+        "whistle",
+        "coach",
+        "ball",
+        "match",
+        "boxing",
+        "team",
+        "sailor",
+        "star",
+        "navy",
+        "club"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 3,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          0.28571368753910065,
+          0.5109150767326355
+        ],
+        "solution_similarities": [
+          0.47612157464027405,
+          0.599753201007843,
+          0.6552672386169434
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "8279fbaa4ab45139c0dd",
+      "difficulty": "easy",
+      "start_word": "limited",
+      "target_word": "short",
+      "move_limit": 8,
+      "threshold": 0.640269011259079,
+      "solution": [
+        "brief",
+        "long",
+        "shorts"
+      ],
+      "initial_similarity": 0.32195430994033813,
+      "feedback_bands": [
+        0.3730504050850868,
+        0.44415786415338515,
+        0.5480379775166512,
+        0.6317144870758057
+      ],
+      "landmark_words": [
+        "limit",
+        "full",
+        "available",
+        "considerable",
+        "plenty",
+        "large",
+        "small",
+        "long",
+        "brief",
+        "length",
+        "quick",
+        "distance",
+        "shorts",
+        "narrow",
+        "modest"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 3,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          0.28571368753910065,
+          0.5109150767326355
+        ],
+        "solution_similarities": [
+          0.43550118803977966,
+          0.6086347103118896,
+          0.6663341522216797
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "b028b6d0b2b75634047a",
+      "difficulty": "easy",
+      "start_word": "photography",
+      "target_word": "lens",
+      "move_limit": 8,
+      "threshold": 0.640269011259079,
+      "solution": [
+        "eye",
+        "adapter",
+        "camera"
+      ],
+      "initial_similarity": 0.3836740255355835,
+      "feedback_bands": [
+        0.4412346601486206,
+        0.5165689796209335,
+        0.5763581722974778,
+        0.6299909234046936
+      ],
+      "landmark_words": [
+        "photographer",
+        "art",
+        "camera",
+        "photograph",
+        "painting",
+        "animation",
+        "artist",
+        "tripod",
+        "eye",
+        "zoom",
+        "telescope",
+        "pixel",
+        "angle"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 3,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          0.28571368753910065,
+          0.5109150767326355
+        ],
+        "solution_similarities": [
+          0.5115865468978882,
+          0.6112352013587952,
+          0.6581245064735413
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "584040fa1f908de52a3b",
+      "difficulty": "easy",
+      "start_word": "button",
+      "target_word": "compass",
+      "move_limit": 8,
+      "threshold": 0.640269011259079,
+      "solution": [
+        "navigation",
+        "guide",
+        "decimal",
+        "tripod"
+      ],
+      "initial_similarity": 0.29285842180252075,
+      "feedback_bands": [
+        0.37818145751953125,
+        0.4847697734832764,
+        0.5738116502761841,
+        0.6365584611892701
+      ],
+      "landmark_words": [
+        "cursor",
+        "click",
+        "scroll",
+        "lever",
+        "folder",
+        "toolbar",
+        "icon",
+        "navigation",
+        "guide",
+        "map",
+        "tripod",
+        "decimal",
+        "charger",
+        "direction",
+        "keyboard",
+        "trackpad"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 4,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          0.28571368753910065,
+          0.5109150767326355
+        ],
+        "solution_similarities": [
+          0.4350634813308716,
+          0.5593292117118835,
+          0.6317414045333862,
+          0.6558266878128052
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "5fe49606925ff199c738",
+      "difficulty": "easy",
+      "start_word": "reduce",
+      "target_word": "manage",
+      "move_limit": 8,
+      "threshold": 0.640269011259079,
+      "solution": [
+        "handle",
+        "organize"
+      ],
+      "initial_similarity": 0.35055220127105713,
+      "feedback_bands": [
+        0.40518375635147097,
+        0.4780258297920227,
+        0.5441571056842804,
+        0.6016557097434998
+      ],
+      "landmark_words": [
+        "increase",
+        "decrease",
+        "improve",
+        "cut",
+        "prevent",
+        "avoid",
+        "limit",
+        "handle",
+        "monitor",
+        "maintain",
+        "coordinate",
+        "develop",
+        "adapt",
+        "organize",
+        "create"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 2,
+        "alternatives_found": 4,
+        "initial_similarity_band": [
+          0.28571368753910065,
+          0.5109150767326355
+        ],
+        "solution_similarities": [
+          0.5326573848724365,
+          0.6476545929908752
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "da5fd04465e43f73efe3",
+      "difficulty": "easy",
+      "start_word": "show",
+      "target_word": "audience",
+      "move_limit": 8,
+      "threshold": 0.640269011259079,
+      "solution": [
+        "crowd",
+        "reader",
+        "television"
+      ],
+      "initial_similarity": 0.326515257358551,
+      "feedback_bands": [
+        0.41548600792884827,
+        0.5294275015592574,
+        0.5918210834264755,
+        0.6352109670639038
+      ],
+      "landmark_words": [
+        "reveal",
+        "see",
+        "suggest",
+        "live",
+        "tell",
+        "appear",
+        "underline",
+        "crowd",
+        "laughter",
+        "microphone",
+        "television",
+        "faithful",
+        "grin",
+        "concert",
+        "stage",
+        "event",
+        "sing"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 3,
+        "alternatives_found": 4,
+        "initial_similarity_band": [
+          0.28571368753910065,
+          0.5109150767326355
+        ],
+        "solution_similarities": [
+          0.524228036403656,
+          0.628217339515686,
+          0.6457014083862305
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "ba9da774b55a975fe64e",
+      "difficulty": "easy",
+      "start_word": "meteor",
+      "target_word": "balloon",
+      "move_limit": 8,
+      "threshold": 0.640269011259079,
+      "solution": [
+        "bubble",
+        "kite",
+        "air"
+      ],
+      "initial_similarity": 0.3276614248752594,
+      "feedback_bands": [
+        0.37059288918972016,
+        0.4318420425057411,
+        0.5371704056859017,
+        0.6203353643417359
+      ],
+      "landmark_words": [
+        "comet",
+        "galaxy",
+        "lightning",
+        "tornado",
+        "moon",
+        "sky",
+        "telescope",
+        "kite",
+        "float",
+        "airplane",
+        "plane",
+        "bubble",
+        "helicopter"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 3,
+        "alternatives_found": 3,
+        "initial_similarity_band": [
+          0.28571368753910065,
+          0.5109150767326355
+        ],
+        "solution_similarities": [
+          0.4230646789073944,
+          0.5986119508743286,
+          0.6529204845428467
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "6a695698e03cd1de6c7e",
+      "difficulty": "easy",
+      "start_word": "tear",
+      "target_word": "tears",
+      "move_limit": 8,
+      "threshold": 0.640269011259079,
+      "solution": [
+        "emotion",
+        "laughter"
+      ],
+      "initial_similarity": 0.3905025124549866,
+      "feedback_bands": [
+        0.43734251856803896,
+        0.49979586005210874,
+        0.556535518169403,
+        0.6060337781906128
+      ],
+      "landmark_words": [
+        "broken",
+        "wear",
+        "damage",
+        "destroy",
+        "break",
+        "redo",
+        "emotion",
+        "sadness",
+        "laughter",
+        "smile",
+        "joy",
+        "hug",
+        "ache"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 2,
+        "alternatives_found": 2,
+        "initial_similarity_band": [
+          0.28571368753910065,
+          0.5109150767326355
+        ],
+        "solution_similarities": [
+          0.5466358661651611,
+          0.6456323862075806
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "42a2bb2fc1bac4435f50",
+      "difficulty": "easy",
+      "start_word": "parrot",
+      "target_word": "gecko",
+      "move_limit": 8,
+      "threshold": 0.640269011259079,
+      "solution": [
+        "spider",
+        "lizard"
+      ],
+      "initial_similarity": 0.441819965839386,
+      "feedback_bands": [
+        0.48020148277282715,
+        0.531376838684082,
+        0.5769086241722107,
+        0.6126599669456482
+      ],
+      "landmark_words": [
+        "lizard",
+        "owl",
+        "bird",
+        "iguana",
+        "cat",
+        "monkey",
+        "frog",
+        "spider",
+        "lemur",
+        "ape",
+        "reptile",
+        "anteater"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 2,
+        "alternatives_found": 1,
+        "initial_similarity_band": [
+          0.28571368753910065,
+          0.5109150767326355
+        ],
+        "solution_similarities": [
+          0.5697583556175232,
+          0.6412610411643982
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "19d1c2c2e77251964ec5",
+      "difficulty": "medium",
+      "start_word": "brother",
+      "target_word": "mansion",
+      "move_limit": 6,
+      "threshold": 0.6998947858810425,
+      "solution": [
+        "house",
+        "palace",
+        "cottage"
+      ],
+      "initial_similarity": 0.2321968674659729,
+      "feedback_bands": [
+        0.333476060628891,
+        0.4678980141878128,
+        0.5955332905054093,
+        0.6970689296722412
+      ],
+      "landmark_words": [
+        "son",
+        "nephew",
+        "father",
+        "uncle",
+        "cousin",
+        "sister",
+        "daughter",
+        "house",
+        "castle",
+        "palace",
+        "bedroom",
+        "cottage",
+        "apartment",
+        "inn",
+        "husband"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 3,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          0.1173601895570755,
+          0.3055300521850585
+        ],
+        "solution_similarities": [
+          0.45726174116134644,
+          0.6699872016906738,
+          0.7376915216445923
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "238c8138c47a51fb1c47",
+      "difficulty": "medium",
+      "start_word": "complain",
+      "target_word": "can",
+      "move_limit": 6,
+      "threshold": 0.6998947858810425,
+      "solution": [
+        "need",
+        "want",
+        "ability"
+      ],
+      "initial_similarity": 0.16160133481025696,
+      "feedback_bands": [
+        0.27239614725112915,
+        0.4201089188456535,
+        0.5676715955138207,
+        0.6883028745651245
+      ],
+      "landmark_words": [
+        "worry",
+        "worried",
+        "say",
+        "argue",
+        "concerned",
+        "talk",
+        "know",
+        "want",
+        "need",
+        "do",
+        "able",
+        "tend",
+        "ability",
+        "let"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 3,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          0.1173601895570755,
+          0.3055300521850585
+        ],
+        "solution_similarities": [
+          0.4078120291233063,
+          0.6537498235702515,
+          0.7401324510574341
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "2f6eb507a8a9b5e22e19",
+      "difficulty": "medium",
+      "start_word": "mere",
+      "target_word": "political",
+      "move_limit": 6,
+      "threshold": 0.6998947858810425,
+      "solution": [
+        "election",
+        "politics",
+        "economic"
+      ],
+      "initial_similarity": 0.12698353826999664,
+      "feedback_bands": [
+        0.21509026214480398,
+        0.3374354571104049,
+        0.5133458465337754,
+        0.6610670328140259
+      ],
+      "landmark_words": [
+        "actual",
+        "pure",
+        "equals",
+        "hollow",
+        "silly",
+        "little",
+        "total",
+        "politics",
+        "election",
+        "democracy",
+        "economic",
+        "government",
+        "party",
+        "legal",
+        "semantics",
+        "real"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 3,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          0.1173601895570755,
+          0.3055300521850585
+        ],
+        "solution_similarities": [
+          0.32277625799179077,
+          0.6159602403640747,
+          0.7287272214889526
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "316b1d34f7b0cfbda8f6",
+      "difficulty": "medium",
+      "start_word": "border",
+      "target_word": "continent",
+      "move_limit": 6,
+      "threshold": 0.6998947858810425,
+      "solution": [
+        "country",
+        "globe",
+        "savanna"
+      ],
+      "initial_similarity": 0.15341638028621674,
+      "feedback_bands": [
+        0.2651617206633091,
+        0.41400566101074215,
+        0.561201286315918,
+        0.6823625087738038
+      ],
+      "landmark_words": [
+        "southern",
+        "northern",
+        "highway",
+        "south",
+        "boundary",
+        "territory",
+        "eastern",
+        "globe",
+        "country",
+        "world",
+        "planet",
+        "nation",
+        "region",
+        "global"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 3,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          0.1173601895570755,
+          0.3055300521850585
+        ],
+        "solution_similarities": [
+          0.40173935890197754,
+          0.6470654010772705,
+          0.7353081703186035
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "5d30eda9d6ec6f50135e",
+      "difficulty": "medium",
+      "start_word": "healthy",
+      "target_word": "willing",
+      "move_limit": 6,
+      "threshold": 0.6998947858810425,
+      "solution": [
+        "afraid",
+        "eager",
+        "refuse"
+      ],
+      "initial_similarity": 0.21145908534526825,
+      "feedback_bands": [
+        0.30152190402150153,
+        0.4234649896621704,
+        0.5658606767654419,
+        0.6839642047882081
+      ],
+      "landmark_words": [
+        "stable",
+        "good",
+        "strong",
+        "safe",
+        "eating",
+        "solid",
+        "diet",
+        "eager",
+        "ready",
+        "want",
+        "afraid",
+        "able",
+        "refuse",
+        "keen",
+        "happy"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 3,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          0.1173601895570755,
+          0.3055300521850585
+        ],
+        "solution_similarities": [
+          0.41159868240356445,
+          0.6489248275756836,
+          0.7365232706069946
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "74e757210f7d08c05c35",
+      "difficulty": "medium",
+      "start_word": "dinner",
+      "target_word": "hug",
+      "move_limit": 6,
+      "threshold": 0.6998947858810425,
+      "solution": [
+        "greet",
+        "kiss",
+        "smile"
+      ],
+      "initial_similarity": 0.22229881584644318,
+      "feedback_bands": [
+        0.30466862991452215,
+        0.4165296480059623,
+        0.5507712587714195,
+        0.6718299865722657
+      ],
+      "landmark_words": [
+        "supper",
+        "breakfast",
+        "meal",
+        "lunch",
+        "barbecue",
+        "dessert",
+        "picnic",
+        "kiss",
+        "smile",
+        "greet",
+        "shout",
+        "grin",
+        "clap",
+        "yell"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 3,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          0.1173601895570755,
+          0.3055300521850585
+        ],
+        "solution_similarities": [
+          0.40534284710884094,
+          0.6290788650512695,
+          0.7359566688537598
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "7e4890a5d240f753e84b",
+      "difficulty": "medium",
+      "start_word": "wise",
+      "target_word": "mild",
+      "move_limit": 6,
+      "threshold": 0.6998947858810425,
+      "solution": [
+        "temperate",
+        "severe",
+        "slight"
+      ],
+      "initial_similarity": 0.1220145896077156,
+      "feedback_bands": [
+        0.20441076308488845,
+        0.3181865543127059,
+        0.47501892745494845,
+        0.630329465866089
+      ],
+      "landmark_words": [
+        "foolish",
+        "good",
+        "smart",
+        "careful",
+        "wisdom",
+        "decent",
+        "nice",
+        "severe",
+        "slight",
+        "temperate",
+        "minor",
+        "pleasant",
+        "harsh",
+        "modest",
+        "gentle"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 3,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          0.1173601895570755,
+          0.3055300521850585
+        ],
+        "solution_similarities": [
+          0.3051171898841858,
+          0.5665044784545898,
+          0.7260669469833374
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "b39fdf1a79e6f61a8e82",
+      "difficulty": "medium",
+      "start_word": "bush",
+      "target_word": "tram",
+      "move_limit": 6,
+      "threshold": 0.6998947858810425,
+      "solution": [
+        "subway",
+        "railway",
+        "bus"
+      ],
+      "initial_similarity": 0.14467763900756836,
+      "feedback_bands": [
+        0.24278178066015244,
+        0.37580896764993665,
+        0.5332744672894478,
+        0.6688621282577515
+      ],
+      "landmark_words": [
+        "jungle",
+        "wombat",
+        "woods",
+        "forest",
+        "tree",
+        "rainforest",
+        "savanna",
+        "railway",
+        "train",
+        "bus",
+        "subway",
+        "taxi",
+        "ferry",
+        "railroad",
+        "woodland"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 3,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          0.1173601895570755,
+          0.3055300521850585
+        ],
+        "solution_similarities": [
+          0.3626868426799774,
+          0.6251293420791626,
+          0.7344613075256348
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "f16af913ecdcb0be0504",
+      "difficulty": "medium",
+      "start_word": "place",
+      "target_word": "play",
+      "move_limit": 6,
+      "threshold": 0.6998947858810425,
+      "solution": [
+        "game",
+        "game",
+        "perform"
+      ],
+      "initial_similarity": 0.12746374309062958,
+      "feedback_bands": [
+        0.2464708626270294,
+        0.4035304546356201,
+        0.5428076267242432,
+        0.6735038042068482
+      ],
+      "landmark_words": [
+        "finish",
+        "round",
+        "time",
+        "overall",
+        "lead",
+        "hold",
+        "put",
+        "game",
+        "score",
+        "compete",
+        "ball",
+        "win",
+        "match",
+        "perform",
+        "tie",
+        "go"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 3,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          0.1173601895570755,
+          0.3055300521850585
+        ],
+        "solution_similarities": [
+          0.39192402362823486,
+          0.6240526437759399,
+          0.7476805448532104
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "f3446bd4ab0c2ca87546",
+      "difficulty": "medium",
+      "start_word": "trick",
+      "target_word": "lemon",
+      "move_limit": 6,
+      "threshold": 0.6998947858810425,
+      "solution": [
+        "lime",
+        "apricot",
+        "cucumber"
+      ],
+      "initial_similarity": 0.21108226478099823,
+      "feedback_bands": [
+        0.3109946645796299,
+        0.4447164207696914,
+        0.5839956313371659,
+        0.6949620723724366
+      ],
+      "landmark_words": [
+        "magic",
+        "magician",
+        "clever",
+        "joke",
+        "clown",
+        "lesson",
+        "catch",
+        "apricot",
+        "cucumber",
+        "avocado",
+        "lime",
+        "cinnamon",
+        "peach",
+        "parsley",
+        "vinegar",
+        "sauce",
+        "vanilla"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 3,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          0.1173601895570755,
+          0.3055300521850585
+        ],
+        "solution_similarities": [
+          0.4331098198890686,
+          0.6652418375015259,
+          0.7395424246788025
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "dbecc508c344a5d5ebb8",
+      "difficulty": "medium",
+      "start_word": "increase",
+      "target_word": "steady",
+      "move_limit": 6,
+      "threshold": 0.6998947858810425,
+      "solution": [
+        "solid",
+        "constant",
+        "slow",
+        "stable"
+      ],
+      "initial_similarity": 0.2332889586687088,
+      "feedback_bands": [
+        0.34301998019218444,
+        0.4927184700965881,
+        0.624980914592743,
+        0.6987940907478333
+      ],
+      "landmark_words": [
+        "decrease",
+        "rise",
+        "reduce",
+        "drop",
+        "growth",
+        "hike",
+        "percent",
+        "solid",
+        "constant",
+        "stable",
+        "modest",
+        "slow",
+        "strong",
+        "slight",
+        "low"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 4,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          0.1173601895570755,
+          0.3055300521850585
+        ],
+        "solution_similarities": [
+          0.4161739945411682,
+          0.607535183429718,
+          0.6947638392448425,
+          0.7149150967597961
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "d89ea0f07a6577c431fc",
+      "difficulty": "medium",
+      "start_word": "pie",
+      "target_word": "salty",
+      "move_limit": 6,
+      "threshold": 0.6998947858810425,
+      "solution": [
+        "salt",
+        "spicy",
+        "moist"
+      ],
+      "initial_similarity": 0.19680406153202057,
+      "feedback_bands": [
+        0.2764609821140766,
+        0.3851047351956367,
+        0.5205282703042031,
+        0.6436542034149171
+      ],
+      "landmark_words": [
+        "cake",
+        "slice",
+        "biscuit",
+        "bacon",
+        "dessert",
+        "pizza",
+        "pastry",
+        "spicy",
+        "moist",
+        "savory",
+        "sweet",
+        "salt",
+        "tart",
+        "tasty",
+        "soup"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 3,
+        "alternatives_found": 5,
+        "initial_similarity_band": [
+          0.1173601895570755,
+          0.3055300521850585
+        ],
+        "solution_similarities": [
+          0.3738194406032562,
+          0.5995253324508667,
+          0.7098475098609924
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "8052c880af269525a605",
+      "difficulty": "hard",
+      "start_word": "petal",
+      "target_word": "nervous",
+      "move_limit": 5,
+      "threshold": 0.7175130275893025,
+      "solution": [
+        "anxious",
+        "anxious",
+        "scared",
+        "neural"
+      ],
+      "initial_similarity": 0.05150952935218811,
+      "feedback_bands": [
+        0.2121059536933899,
+        0.4272989749908447,
+        0.6134317040443421,
+        0.7130504608154297
+      ],
+      "landmark_words": [
+        "flower",
+        "violet",
+        "vine",
+        "bloom",
+        "fern",
+        "leaf",
+        "purple",
+        "anxious",
+        "scared",
+        "worried",
+        "frightened",
+        "tired",
+        "excited",
+        "concerned"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 4,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          -0.04841566503047943,
+          0.05406119599938392
+        ],
+        "solution_similarities": [
+          0.3191702365875244,
+          0.5894920825958252,
+          0.7091901898384094,
+          0.7284915447235107
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "8455cf3b805c14bea185",
+      "difficulty": "hard",
+      "start_word": "obtain",
+      "target_word": "bunny",
+      "move_limit": 5,
+      "threshold": 0.7175130275893025,
+      "solution": [
+        "rabbit",
+        "doll",
+        "rabbit",
+        "cute"
+      ],
+      "initial_similarity": -0.045529548078775406,
+      "feedback_bands": [
+        0.1182398796081543,
+        0.3456658124923706,
+        0.557200586795807,
+        0.7004508018493653
+      ],
+      "landmark_words": [
+        "provide",
+        "receive",
+        "collect",
+        "arrange",
+        "secure",
+        "get",
+        "find",
+        "rabbit",
+        "cat",
+        "chipmunk",
+        "kitten",
+        "squirrel",
+        "ladybug",
+        "puppy"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 4,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          -0.04841566503047943,
+          0.05406119599938392
+        ],
+        "solution_similarities": [
+          0.22741949558258057,
+          0.5230352878570557,
+          0.6938617825508118,
+          0.7268068790435791
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "d53a19b039f7ce3e90d1",
+      "difficulty": "hard",
+      "start_word": "dependent",
+      "target_word": "junior",
+      "move_limit": 5,
+      "threshold": 0.7175130275893025,
+      "solution": [
+        "senior",
+        "school",
+        "senior",
+        "amateur"
+      ],
+      "initial_similarity": 0.01910628378391266,
+      "feedback_bands": [
+        0.18787790536880494,
+        0.39673691987991333,
+        0.5744415879249573,
+        0.716273283958435
+      ],
+      "landmark_words": [
+        "depend",
+        "essential",
+        "concentrate",
+        "vital",
+        "limited",
+        "concerned",
+        "critical",
+        "senior",
+        "college",
+        "volleyball",
+        "school",
+        "student",
+        "athlete",
+        "team",
+        "skilled"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 4,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          -0.04841566503047943,
+          0.05406119599938392
+        ],
+        "solution_similarities": [
+          0.3003923296928406,
+          0.5412538051605225,
+          0.7071927189826965,
+          0.7525955438613892
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "f0581beb8b4c6ac6be9b",
+      "difficulty": "hard",
+      "start_word": "capsule",
+      "target_word": "concern",
+      "move_limit": 5,
+      "threshold": 0.7175130275893025,
+      "solution": [
+        "fear",
+        "worry",
+        "problem",
+        "interest"
+      ],
+      "initial_similarity": -0.03815837576985359,
+      "feedback_bands": [
+        0.10246390998363494,
+        0.3209544390439987,
+        0.5422949671745301,
+        0.6909532666206359
+      ],
+      "landmark_words": [
+        "orbit",
+        "astronaut",
+        "jar",
+        "comet",
+        "telescope",
+        "space",
+        "balloon",
+        "worry",
+        "concerned",
+        "fear",
+        "problem",
+        "worried",
+        "question",
+        "anger"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 4,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          -0.04841566503047943,
+          0.05406119599938392
+        ],
+        "solution_similarities": [
+          0.19621209800243378,
+          0.5080679655075073,
+          0.6792029738426208,
+          0.7379544377326965
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "f4a0fbde45e349158e4b",
+      "difficulty": "hard",
+      "start_word": "acrobat",
+      "target_word": "money",
+      "move_limit": 5,
+      "threshold": 0.7175130275893025,
+      "solution": [
+        "fund",
+        "fund",
+        "cash",
+        "know"
+      ],
+      "initial_similarity": -0.00903434306383133,
+      "feedback_bands": [
+        0.13660249710083006,
+        0.3424671411514282,
+        0.5422881126403809,
+        0.6976715564727783
+      ],
+      "landmark_words": [
+        "dancer",
+        "juggler",
+        "magician",
+        "ballet",
+        "dance",
+        "nautilus",
+        "clown",
+        "cash",
+        "fund",
+        "pay",
+        "amount",
+        "sum",
+        "taxes",
+        "borrow"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 4,
+        "alternatives_found": 6,
+        "initial_similarity_band": [
+          -0.04841566503047943,
+          0.05406119599938392
+        ],
+        "solution_similarities": [
+          0.23369371891021729,
+          0.5056272745132446,
+          0.6889314651489258,
+          0.7326319217681885
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "4e1f89c7e4e65124e9ba",
+      "difficulty": "hard",
+      "start_word": "permanent",
+      "target_word": "coat",
+      "move_limit": 5,
+      "threshold": 0.7175130275893025,
+      "solution": [
+        "jacket",
+        "brown",
+        "jacket",
+        "paint"
+      ],
+      "initial_similarity": 0.0422116219997406,
+      "feedback_bands": [
+        0.20362202525138856,
+        0.4132508814334869,
+        0.5954144835472107,
+        0.7138303399085999
+      ],
+      "landmark_words": [
+        "temporary",
+        "new",
+        "suitable",
+        "immediate",
+        "current",
+        "definite",
+        "possible",
+        "jacket",
+        "sweater",
+        "scarf",
+        "brown",
+        "shirt",
+        "trousers",
+        "shiny",
+        "plaster"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 4,
+        "alternatives_found": 5,
+        "initial_similarity_band": [
+          -0.04841566503047943,
+          0.05406119599938392
+        ],
+        "solution_similarities": [
+          0.3112289607524872,
+          0.5662837624549866,
+          0.7119373679161072,
+          0.7214022278785706
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "3b4c11e1357ba0a6219f",
+      "difficulty": "hard",
+      "start_word": "generous",
+      "target_word": "therapy",
+      "move_limit": 5,
+      "threshold": 0.7175130275893025,
+      "solution": [
+        "treatment",
+        "healing",
+        "treatment",
+        "yoga"
+      ],
+      "initial_similarity": -0.04414374753832817,
+      "feedback_bands": [
+        0.12628942131996154,
+        0.34091851115226746,
+        0.5285889744758606,
+        0.6852753758430481
+      ],
+      "landmark_words": [
+        "generosity",
+        "grateful",
+        "thoughtful",
+        "fortunate",
+        "thankful",
+        "modest",
+        "flexible",
+        "treatment",
+        "healing",
+        "medicine",
+        "yoga",
+        "clinical",
+        "surgery",
+        "patient",
+        "caring",
+        "gentle"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 4,
+        "alternatives_found": 4,
+        "initial_similarity_band": [
+          -0.04841566503047943,
+          0.05406119599938392
+        ],
+        "solution_similarities": [
+          0.2399115264415741,
+          0.4924289882183075,
+          0.673228919506073,
+          0.7334612011909485
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "a6c6e23e032d3cd576ea",
+      "difficulty": "hard",
+      "start_word": "anxious",
+      "target_word": "syrup",
+      "move_limit": 5,
+      "threshold": 0.7175130275893025,
+      "solution": [
+        "honey",
+        "sauce",
+        "maple",
+        "sugar"
+      ],
+      "initial_similarity": 0.01869557797908783,
+      "feedback_bands": [
+        0.17337812781333922,
+        0.3890266954898834,
+        0.5843906998634338,
+        0.6995584726333618
+      ],
+      "landmark_words": [
+        "eager",
+        "nervous",
+        "worried",
+        "concerned",
+        "frightened",
+        "excited",
+        "happy",
+        "honey",
+        "chocolate",
+        "cranberry",
+        "caramel",
+        "sauce",
+        "vinegar",
+        "cinnamon",
+        "sugar"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 4,
+        "alternatives_found": 4,
+        "initial_similarity_band": [
+          -0.04841566503047943,
+          0.05406119599938392
+        ],
+        "solution_similarities": [
+          0.27649983763694763,
+          0.5578169822692871,
+          0.6906855702400208,
+          0.7350500822067261
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "06630b157cdc4214d52c",
+      "difficulty": "hard",
+      "start_word": "remarkable",
+      "target_word": "protein",
+      "move_limit": 5,
+      "threshold": 0.7175130275893025,
+      "solution": [
+        "carbohydrate",
+        "carbohydrate",
+        "mice",
+        "bind"
+      ],
+      "initial_similarity": 0.04166552051901817,
+      "feedback_bands": [
+        0.1963714063167572,
+        0.40533605217933655,
+        0.5923590421676636,
+        0.7091413974761963
+      ],
+      "landmark_words": [
+        "amazing",
+        "dramatic",
+        "splendid",
+        "brilliant",
+        "wonderful",
+        "fantastic",
+        "great",
+        "carbohydrate",
+        "mice",
+        "vitamin",
+        "fat",
+        "neural",
+        "liver",
+        "diet"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 4,
+        "alternatives_found": 3,
+        "initial_similarity_band": [
+          -0.04841566503047943,
+          0.05406119599938392
+        ],
+        "solution_similarities": [
+          0.299508661031723,
+          0.5640771389007568,
+          0.7054866552352905,
+          0.7237603664398193
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "ccac917c431bf581cb18",
+      "difficulty": "hard",
+      "start_word": "tame",
+      "target_word": "polar",
+      "move_limit": 5,
+      "threshold": 0.7175130275893025,
+      "solution": [
+        "arctic",
+        "glacier",
+        "orbit",
+        "arctic"
+      ],
+      "initial_similarity": 0.051704041659832,
+      "feedback_bands": [
+        0.21238310337066652,
+        0.4248834371566772,
+        0.6037987470626831,
+        0.695712399482727
+      ],
+      "landmark_words": [
+        "wild",
+        "calm",
+        "modest",
+        "cool",
+        "dull",
+        "stubborn",
+        "quiet",
+        "arctic",
+        "glacier",
+        "tundra",
+        "ice",
+        "ocean",
+        "moon",
+        "planet",
+        "temperate"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 4,
+        "alternatives_found": 3,
+        "initial_similarity_band": [
+          -0.04841566503047943,
+          0.05406119599938392
+        ],
+        "solution_similarities": [
+          0.31950247287750244,
+          0.5829548835754395,
+          0.6871742010116577,
+          0.7298651933670044
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "7beaf24012348602cb08",
+      "difficulty": "hard",
+      "start_word": "needle",
+      "target_word": "run",
+      "move_limit": 5,
+      "threshold": 0.7175130275893025,
+      "solution": [
+        "running",
+        "running",
+        "lead",
+        "walk"
+      ],
+      "initial_similarity": -0.04714982584118843,
+      "feedback_bands": [
+        0.11185927391052246,
+        0.33704950809478756,
+        0.5443175792694092,
+        0.6718987464904785
+      ],
+      "landmark_words": [
+        "knife",
+        "chopstick",
+        "spoon",
+        "abdomen",
+        "forehead",
+        "tongue",
+        "chest",
+        "running",
+        "drive",
+        "go",
+        "walk",
+        "stretch",
+        "start",
+        "pull",
+        "nail",
+        "screw"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 4,
+        "alternatives_found": 2,
+        "initial_similarity_band": [
+          -0.04841566503047943,
+          0.05406119599938392
+        ],
+        "solution_similarities": [
+          0.21786534786224365,
+          0.5158257484436035,
+          0.6582849025726318,
+          0.7263541221618652
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    },
+    {
+      "id": "8afd33003026091f48d0",
+      "difficulty": "hard",
+      "start_word": "chief",
+      "target_word": "sweet",
+      "move_limit": 5,
+      "threshold": 0.7175130275893025,
+      "solution": [
+        "tart",
+        "delicious",
+        "cute",
+        "bitter"
+      ],
+      "initial_similarity": -0.0308589618653059,
+      "feedback_bands": [
+        0.11179071962833403,
+        0.3284084767103195,
+        0.5453274488449097,
+        0.6919932723045349
+      ],
+      "landmark_words": [
+        "director",
+        "president",
+        "head",
+        "principal",
+        "general",
+        "minister",
+        "editor",
+        "delicious",
+        "tasty",
+        "lovely",
+        "tart",
+        "savory",
+        "spicy",
+        "cute",
+        "vanilla"
+      ],
+      "model_fingerprint": "92726a53d85e228a6a5d3bd7",
+      "mechanics": {},
+      "calibration": {
+        "method": "observed_bounded_beam_search",
+        "seed": 42,
+        "beam_width": 6,
+        "candidate_count": 32,
+        "shortest_found": 4,
+        "alternatives_found": 2,
+        "initial_similarity_band": [
+          -0.04841566503047943,
+          0.05406119599938392
+        ],
+        "solution_similarities": [
+          0.2068905085325241,
+          0.5106854438781738,
+          0.683895468711853,
+          0.7243844866752625
+        ],
+        "thresholds": {
+          "easy": 0.640269011259079,
+          "medium": 0.6998947858810425,
+          "hard": 0.7175130275893025
+        },
+        "sampled_pairs": 2673,
+        "human_playtested": false
+      }
+    }
+  ]
+}

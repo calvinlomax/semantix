@@ -1,0 +1,10 @@
+# Additional defense for input in full-model deployments.
+# The curated allowlist is the primary content filter for generated puzzles.
+fuck
+fucking
+shit
+bitch
+asshole
+damn
+bastard
+crap
