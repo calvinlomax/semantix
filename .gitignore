@@ -12,6 +12,7 @@ frontend/test-results/
 data/models/
 data/cache/
 data/downloads/
+data/nltk_data/
 frontend/.cache/
 *.log
 *.pid

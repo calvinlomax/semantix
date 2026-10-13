@@ -1,0 +1,33 @@
+.semantic-map-shell {position:relative}
+.map-view-toggle {position:absolute;z-index:3;top:16px;right:20px;display:flex;border:1px solid #3d304b;border-radius:7px;background:#1b1623;overflow:hidden}
+.map-view-toggle button {padding:7px 11px;min-height:33px;color:#9f90b2;font:11px "SFMono-Regular",Consolas,monospace}
+.map-view-toggle button[aria-pressed="true"] {background:#3c2f50;color:#eadbff}
+.map-view-toggle button:disabled {opacity:.38;cursor:not-allowed}
+.semantic-map-shell .map-dimension {margin-right:82px}
+.map-fallback {position:absolute;left:24px;top:50px;z-index:2;color:#a696b8;font-size:10px;pointer-events:none}
+.map-loading {display:grid;place-items:center;color:#b7a5c8;font-size:13px}
+.map-canvas {height:100%;width:100%;touch-action:none;cursor:grab}
+.map-canvas:active {cursor:grabbing}
+.map-canvas:focus-visible {outline:2px solid #bda0ea;outline-offset:-3px}
+.map-label {position:relative;white-space:nowrap;pointer-events:none;text-align:center;color:#b9aeca;font-size:10px;text-shadow:0 1px 5px #0d0a14,0 0 7px #0d0a14;transform:translateY(-19px)}
+.map-label em {display:block;font-size:8px;font-style:normal;letter-spacing:1.1px;margin-bottom:3px;opacity:.8}
+.map-label.start {font-size:14px;color:#a7e6d4;transform:translateY(-26px)}
+.map-label.target {font-size:16px;color:#dfc4ff;transform:translateY(-37px)}
+.map-label.player {color:#fcf2ff;transform:translateY(25px);font-size:9px;letter-spacing:1px}
+.map-label.submitted {color:#dbc5ff;font-size:11px}
+.map-label.preview {color:#dbcaf7;font-size:10px;transform:translateY(24px)}
+.map-tooltip {padding:8px 10px;border:1px solid #5a466b;border-radius:6px;background:#191120f2;color:#ede1fc;white-space:nowrap;font-size:11px;box-shadow:0 5px 20px #0005;pointer-events:none;transform:translateY(-45px)}
+.map-tooltip small {display:block;color:#bfaed1;margin-top:3px;font:10px "SFMono-Regular",Consolas,monospace}
+.map-3d .map-topline,.map-3d .map-bottomline {z-index:2}
+.map-3d .map-controls button {min-width:35px;min-height:35px}
+.map-3d .map-pan-hint {bottom:28px;font-size:9px}
+@media(max-width:650px) {
+  .map-view-toggle {top:12px;right:12px}
+  .map-view-toggle button {min-width:38px;min-height:35px;padding:7px}
+  .semantic-map-shell .map-dimension {display:none}
+  .semantic-map-shell .map-controls button {min-width:40px;min-height:40px}
+  .map-fallback {top:51px;left:16px;font-size:9px;max-width:70%}
+  .map-label {font-size:9px}
+  .map-label.start {font-size:12px}
+  .map-label.target {font-size:14px}
+}

@@ -31,3 +31,19 @@ def test_real_google_lookup_catalog_and_full_api_games():
                     break
             assert game["status"] == "won", json.dumps(game)
             assert game["similarity"] >= game["threshold"]
+
+
+def test_every_existing_catalog_certificate_remains_playable_with_word_resolution():
+    """The normalization update must not invalidate previously calibrated puzzles."""
+    from backend.app.models.requests import MoveRequest
+    service = GameService(Settings())
+    service.ensure_ready()
+    levels = service.levels
+    for level in levels:
+        service.levels = [level]
+        game = service.new_game(level.difficulty)
+        for word in level.solution:
+            game = service.move(MoveRequest(game_id=game["id"], word=word))
+            if game["status"] == "won":
+                break
+        assert game["status"] == "won", level.id

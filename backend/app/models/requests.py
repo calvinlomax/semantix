@@ -21,3 +21,10 @@ class MoveRequest(RequestModel):
 
 class HintRequest(RequestModel):
     game_id: str = Field(min_length=1, max_length=100)
+
+
+class PreviewRequest(RequestModel):
+    game_id: str = Field(min_length=1, max_length=100)
+    word: str = Field(min_length=1, max_length=64)
+    expected_move: int | None = Field(default=None, ge=0, le=100)
+    power_shot: bool = False

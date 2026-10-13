@@ -84,3 +84,35 @@ main {padding-top:43px} .page-intro {display:flex; align-items:center; justify-c
   .setup-command>code {font-size:11px}
   .setup-command>span,.setup-panel .setup-footnote {font-size:10px}
 }
+
+/* Focused gameplay feedback and controls. */
+.move-feedback {display:flex; flex-wrap:wrap; align-items:center; column-gap:12px; row-gap:5px; padding:12px 14px; margin-bottom:18px; border:1px solid #34303e; border-radius:8px; background:#191620; font-size:12px; line-height:1.6}
+.move-feedback strong {font-size:12px; font-weight:550}
+.move-feedback>span {color:#aaa0b7; font-size:11px; font-variant-numeric:tabular-nums}
+.move-feedback .normalization-message {flex-basis:100%; font-size:11px; color:#a598b4}
+.preview-feedback {min-height:22px; display:flex; flex-wrap:wrap; gap:4px 7px; align-items:center; margin:9px 2px 0; font-size:11px; color:#bba9d0; line-height:1.6}
+.preview-feedback small {flex-basis:100%; font-size:11px; color:#94869f}
+.preview-unavailable {color:#ac94a6}
+.clear-word {width:36px; height:40px; flex-shrink:0}
+.round-controls {display:flex; flex-wrap:wrap; gap:10px 22px; margin-top:14px; padding-top:11px; border-top:1px solid #25202d}
+.round-controls .text-button {font-size:11px; min-height:32px; color:#9b8aab}
+.history-toggle {display:inline-flex; align-items:center; gap:7px; background:none; padding:6px 0; font:inherit; color:inherit}
+.history-toggle>svg {transition:transform .18s}
+.history-toggle>svg.collapsed {transform:rotate(-90deg)}
+.history-normalization {display:block; margin-top:4px; color:#93859f; font-size:10px; font-weight:400; line-height:1.4}
+.history-word {overflow-wrap:anywhere; max-width:230px}
+.history-word>span>svg {display:inline}
+.welcome-ready {width:100%; min-height:44px}
+@media(max-width:600px) {
+  .clear-word {width:40px; height:44px}
+  .word-form {gap:6px}
+  .word-form:has(.clear-word) .input-symbol {display:none}
+  .header-actions .icon-button {height:44px; width:40px}
+  .hint-button {min-height:44px}
+  .round-controls .text-button {min-height:44px; font-size:12px}
+  .history-toggle {min-height:44px}
+  .history-normalization {font-size:10px}
+  .history-word {max-width:120px}
+  .move-feedback {font-size:12px; padding:11px 12px}
+  .move-feedback>span,.move-feedback .normalization-message,.preview-feedback,.preview-feedback small {font-size:12px}
+}

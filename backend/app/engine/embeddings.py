@@ -3,17 +3,19 @@
 from __future__ import annotations
 
 import hashlib
-import re
 import threading
-from functools import lru_cache
+from dataclasses import dataclass
+from functools import cached_property, lru_cache
 from pathlib import Path
 from typing import Mapping
 
 import numpy as np
 
 from .scoring import DIMENSIONS, normalize
-
-TOKEN = re.compile(r"^[a-z]{2,24}$")
+from .morphology import (
+    TOKEN, MorphologyUnavailableError, lemma_forms, normalized_token,
+    rule_keys as morphology_rule_keys,
+)
 
 
 class ModelUnavailableError(RuntimeError):
@@ -27,10 +29,86 @@ class WordValidationError(ValueError):
 
 
 def clean_word(word: str) -> str:
-    cleaned = word.strip().lower()
+    cleaned = normalized_token(word)
     if not TOKEN.fullmatch(cleaned):
         raise WordValidationError("Use one English word of 2–24 letters.", "invalid_word")
     return cleaned
+
+
+@dataclass(frozen=True, eq=False)
+class WordResolution:
+    original_word: str
+    resolved_word: str
+    resolution: str
+    vector: np.ndarray
+    rule_keys: frozenset[str]
+
+
+class _WordResolver:
+    """Shared authoritative resolution for real and injected fixture models."""
+
+    @lru_cache(maxsize=8192)
+    def rule_keys(self, word: str) -> frozenset[str]:
+        token = clean_word(word)
+        try:
+            return morphology_rule_keys(token)
+        except MorphologyUnavailableError as exc:
+            raise WordValidationError(str(exc), "normalization_unavailable") from exc
+
+    @cached_property
+    def _blocked_keys(self) -> frozenset[str]:
+        return frozenset(key for word in self._blocked for key in self.rule_keys(word))
+
+    def resolve(self, word: str) -> WordResolution:
+        self.load()
+        clean_word(word)
+        return self._resolve_original(word.strip())
+
+    @lru_cache(maxsize=4096)
+    def _resolve_original(self, original: str) -> WordResolution:
+        token = clean_word(original)
+        if token in self._blocked:
+            raise WordValidationError("That word is unavailable in Semantix.", "blocked_word")
+        keys = self.rule_keys(token)
+        if keys & self._blocked_keys:
+            raise WordValidationError("That word or its base form is unavailable in Semantix.", "blocked_word")
+
+        if self._has_word(original):
+            resolved, method = original, "exact"
+        elif self._has_word(token):
+            resolved, method = token, "normalized"
+        else:
+            candidates = lemma_forms(token) - {token}
+            if len(candidates) > 1:
+                raise WordValidationError(
+                    f'"{original}" has more than one possible base form '
+                    f'({", ".join(sorted(candidates))}). Enter the intended base word.',
+                    "ambiguous_word",
+                )
+            if not candidates or not self._has_word(next(iter(candidates))):
+                raise WordValidationError(
+                    f'Neither "{original}" nor a recognized base form is in the active '
+                    "Google News vocabulary. Try another word."
+                )
+            resolved, method = next(iter(candidates)), "lemma"
+        return WordResolution(original, resolved, method, self._exact_vector(resolved), keys)
+
+    def lookup(self, word: str) -> np.ndarray:
+        """Vector access for catalog/math; gameplay must use resolve() for rules.
+
+        Exact vectors remain usable for preparation/validation without WordNet.
+        Resolution additionally requires morphology to enforce word families.
+        """
+        self.load()
+        token = clean_word(word)
+        if token in self._blocked:
+            raise WordValidationError("That word is unavailable in Semantix.", "blocked_word")
+        original = word.strip()
+        if self._has_word(original):
+            return self._exact_vector(original)
+        if self._has_word(token):
+            return self._exact_vector(token)
+        return self.resolve(word).vector
 
 
 def _read_words(path: Path | None) -> tuple[str, ...]:
@@ -42,7 +120,7 @@ def _read_words(path: Path | None) -> tuple[str, ...]:
     ))
 
 
-class EmbeddingStore:
+class EmbeddingStore(_WordResolver):
     def __init__(
         self,
         model_path: str | Path,
@@ -139,18 +217,13 @@ class EmbeddingStore:
         self.load()
         return self._fingerprint
 
-    def lookup(self, word: str) -> np.ndarray:
-        self.load()
-        return self._lookup_normalized(clean_word(word))
+    def _has_word(self, word: str) -> bool:
+        return word in self._model and (self.limit is None or self._model.key_to_index[word] < self.limit)
 
     @lru_cache(maxsize=4096)
-    def _lookup_normalized(self, word: str) -> np.ndarray:
-        if word in self._blocked:
-            raise WordValidationError("That word is unavailable in Semantix.", "blocked_word")
+    def _exact_vector(self, word: str) -> np.ndarray:
         if word in self._indices:
             return self._matrix[self._indices[word]]
-        if word not in self._model or (self.limit is not None and self._model.key_to_index[word] >= self.limit):
-            raise WordValidationError("That word isn't in the active Google News vocabulary. Try another word.")
         try:
             vector = normalize(self._model[word])
         except ValueError as exc:
@@ -159,11 +232,11 @@ class EmbeddingStore:
         return vector
 
 
-class SyntheticEmbeddings:
+class SyntheticEmbeddings(_WordResolver):
     """Explicit dependency-injected fixture. Never selected as an app fallback."""
 
     def __init__(self, vectors: Mapping[str, np.ndarray], *, blocked: tuple[str, ...] = ()) -> None:
-        self._blocked = frozenset(blocked)
+        self._blocked = frozenset(clean_word(word) for word in blocked)
         self.words = tuple(sorted(word for word in vectors if word not in self._blocked))
         if not self.words:
             raise ValueError("At least one fixture vector is required.")
@@ -177,12 +250,10 @@ class SyntheticEmbeddings:
     def load(self) -> "SyntheticEmbeddings":
         return self
 
-    def lookup(self, word: str) -> np.ndarray:
-        word = clean_word(word)
-        if word in self._blocked:
-            raise WordValidationError("That word is unavailable in Semantix.", "blocked_word")
-        if word not in self._indices:
-            raise WordValidationError("Unknown fixture word.")
+    def _has_word(self, word: str) -> bool:
+        return word in self._indices
+
+    def _exact_vector(self, word: str) -> np.ndarray:
         return self.matrix[self._indices[word]]
 
     def status(self) -> dict:

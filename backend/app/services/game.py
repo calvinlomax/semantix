@@ -9,8 +9,8 @@ from threading import RLock
 import numpy as np
 
 from ..config import Settings
-from ..engine.embeddings import EmbeddingStore
-from ..engine.level_generator import Level, LevelGenerator
+from ..engine.embeddings import EmbeddingStore, WordValidationError, clean_word
+from ..engine.level_generator import Level, LevelGenerator, LevelGenerationError
 from ..engine.physics import PhysicsConfig, step
 from ..engine.projection import Projection
 from ..engine.scoring import cosine_similarity, efficiency, feedback
@@ -39,11 +39,13 @@ class Session:
     projection: Projection
     landmarks: list[dict]
     trail: list[list[float]]
+    trail3d: list[list[float]]
     history: list[dict] = field(default_factory=list)
     status: str = "playing"
     hints_used: int = 0
     power_used: int = 0
     last_word: str | None = None
+    used_word_keys: set[str] = field(default_factory=set)
     requests: dict = field(default_factory=dict)
     lock: RLock = field(default_factory=RLock)
 
@@ -133,8 +135,11 @@ class GameService:
         game = Session(
             id=token_urlsafe(24), level=level, mode=mode, daily_date=day,
             position=position, velocity=np.zeros(300), projection=projection,
-            landmarks=[{"word": word, "position": projection.project(self.embeddings.lookup(word))} for word in landmark_words if word not in (level.start_word, level.target_word)],
-            trail=[projection.project(position)], last_word=level.start_word,
+            landmarks=[{"word": word, "position": projection.project(self.embeddings.lookup(word)),
+                        "position3d": projection.project3d(self.embeddings.lookup(word)),
+                        "similarity": cosine_similarity(self.embeddings.lookup(word), target)}
+                       for word in landmark_words if word not in (level.start_word, level.target_word)],
+            trail=[projection.project(position)], trail3d=[projection.project3d(position)], last_word=level.start_word,
         )
         self.store.put(game)
         return self.serialize(game)
@@ -147,57 +152,96 @@ class GameService:
         changes = {key: mechanics[key] for key in ("gravity_strength", "power_multiplier", "forbidden_similarity") if key in mechanics}
         return PhysicsConfig(**{**asdict(self.physics), **changes})
 
+    def _resolve_allowed(self, game, word):
+        """One authoritative vocabulary/rules path for previews, hints, and moves."""
+        try:
+            resolved = self.embeddings.resolve(word)
+            keys = resolved.rule_keys
+            # Keep the existing target rule tied to the actual model entry.
+            # Distinct exact inflections have distinct vectors and already form
+            # valid catalog routes; a fallback resolving TO the target may not
+            # smuggle that target vector into play.
+            target_token = clean_word(game.level.target_word)
+            if target_token in {clean_word(resolved.original_word), clean_word(resolved.resolved_word)}:
+                raise GameError("target_word", "Navigate with related words; the target or a word resolved to the target cannot be used.")
+            mechanics = getattr(game.level, "mechanics", {}) or {}
+            for forbidden in mechanics.get("forbidden_words", []):
+                if keys & self.embeddings.rule_keys(forbidden):
+                    raise GameError("forbidden_word", "That word or its base form is forbidden in this level.")
+            if not mechanics.get("allow_repeats", True) and keys & game.used_word_keys:
+                raise GameError("repeated_word", "You have already used this word or one of its grammatical forms.")
+            config = self._physics_for(game)
+            for region in mechanics.get("forbidden_regions", []):
+                if cosine_similarity(resolved.vector, self.embeddings.lookup(region)) >= config.forbidden_similarity:
+                    raise GameError("forbidden_region", "That word is inside a forbidden semantic neighborhood.")
+            return resolved
+        except WordValidationError as exc:
+            raise GameError(exc.code, str(exc), 503 if exc.code == "normalization_unavailable" else 400) from exc
+
+    @staticmethod
+    def _resolution_fields(resolved):
+        return {
+            "word": resolved.original_word, "resolved_word": resolved.resolved_word,
+            "resolution": resolved.resolution,
+            "normalization_message": (f'"{resolved.original_word}" accepted using "{resolved.resolved_word}"'
+                                      if resolved.original_word != resolved.resolved_word else None),
+        }
+
+    def _calculate_move(self, game, request):
+        """Calculate a validated update without changing any session field."""
+        if game.status != "playing":
+            raise GameError("game_complete", "This round is complete. Start a new round or retry.", 409)
+        if request.expected_move is not None and request.expected_move != len(game.history):
+            raise GameError("stale_game", "Another move was already processed. Refresh this round before submitting again.", 409)
+        resolved = self._resolve_allowed(game, request.word)
+        mechanics = getattr(game.level, "mechanics", {}) or {}
+        if request.power_shot and game.power_used >= int(mechanics.get("power_shots", 0)):
+            raise GameError("no_power_shots", "No power shots are available in this round.")
+        target = self.embeddings.lookup(game.level.target_word)
+        before = cosine_similarity(game.position, target)
+        position, velocity = step(
+            game.position, game.velocity, resolved.vector, self._physics_for(game),
+            previous_word=self.embeddings.lookup(game.last_word),
+            attractor=self.embeddings.lookup(mechanics["attractor"]) if mechanics.get("attractor") else None,
+            power=request.power_shot,
+        )
+        after = cosine_similarity(position, target)
+        entry = {
+            "number": len(game.history) + 1, **self._resolution_fields(resolved),
+            "similarity_before": before, "similarity_after": after, "delta": after - before,
+            "word_similarity": cosine_similarity(resolved.vector, target),
+            "efficiency": efficiency(before, after, game.level.threshold),
+            "position": game.projection.project(position), "word_position": game.projection.project(resolved.vector),
+            "position3d": game.projection.project3d(position), "word_position3d": game.projection.project3d(resolved.vector),
+            "power_shot": request.power_shot,
+        }
+        return resolved, position, velocity, entry
+
+    def preview(self, request):
+        game = self.store.get(request.game_id)
+        with game.lock:
+            _, _, _, entry = self._calculate_move(game, request)
+            return {"game_id": game.id, "expected_move": len(game.history), **entry,
+                    "would_win": entry["similarity_after"] >= game.level.threshold}
+
     def move(self, request):
         game = self.store.get(request.game_id)
         with game.lock:
-            word = request.word.strip().lower()
-            signature = (word, request.power_shot)
+            # Preserve casing: distinct exact-case model entries can have distinct vectors.
+            signature = (request.word.strip(), request.power_shot)
             if request.request_id and request.request_id in game.requests:
                 old_signature, response = game.requests[request.request_id]
                 if signature != old_signature:
                     raise GameError("request_conflict", "A request ID cannot be reused for another word.", 409)
                 return response
-            if game.status != "playing":
-                raise GameError("game_complete", "This round is complete. Start a new round or retry.", 409)
-            if request.expected_move is not None and request.expected_move != len(game.history):
-                raise GameError("stale_game", "Another move was already processed. Refresh this round before submitting again.", 409)
-            if word == game.level.target_word.lower():
-                raise GameError("target_word", "Navigate with related words; the target itself cannot be used.")
-            try:
-                vector = self.embeddings.lookup(word)
-            except ValueError as exc:
-                raise GameError("unknown_word", str(exc)) from exc
-            mechanics = getattr(game.level, "mechanics", {}) or {}
-            forbidden = mechanics.get("forbidden_words", [])
-            if word in forbidden:
-                raise GameError("forbidden_word", "That word is forbidden in this level.")
-            config = self._physics_for(game)
-            for region in mechanics.get("forbidden_regions", []):
-                if cosine_similarity(vector, self.embeddings.lookup(region)) >= config.forbidden_similarity:
-                    raise GameError("forbidden_region", "That word is inside a forbidden semantic neighborhood.")
-            if request.power_shot and game.power_used >= int(mechanics.get("power_shots", 0)):
-                raise GameError("no_power_shots", "No power shots are available in this round.")
-            target = self.embeddings.lookup(game.level.target_word)
-            before = cosine_similarity(game.position, target)
-            position, velocity = step(
-                game.position, game.velocity, vector, config,
-                previous_word=self.embeddings.lookup(game.last_word),
-                attractor=self.embeddings.lookup(mechanics["attractor"]) if mechanics.get("attractor") else None,
-                power=request.power_shot,
-            )
-            after = cosine_similarity(position, target)
-            entry = {
-                "number": len(game.history) + 1, "word": word,
-                "similarity_before": before, "similarity_after": after, "delta": after - before,
-                "efficiency": efficiency(before, after, game.level.threshold),
-                "position": game.projection.project(position), "word_position": game.projection.project(vector),
-                "power_shot": request.power_shot,
-            }
-            game.position, game.velocity, game.last_word = position, velocity, word
+            resolved, position, velocity, entry = self._calculate_move(game, request)
+            game.position, game.velocity, game.last_word = position, velocity, resolved.resolved_word
             game.history.append(entry)
             game.trail.append(entry["position"])
+            game.trail3d.append(entry["position3d"])
+            game.used_word_keys.update(resolved.rule_keys)
             game.power_used += int(request.power_shot)
-            if after >= game.level.threshold:
+            if entry["similarity_after"] >= game.level.threshold:
                 game.status = "won"
             elif len(game.history) >= game.level.move_limit:
                 game.status = "lost"
@@ -218,9 +262,40 @@ class GameService:
                 raise GameError("game_complete", "This round is complete.", 409)
             if game.hints_used >= self._hints_limit(game):
                 raise GameError("no_hints", "No hints remain for this round.")
-            word = self.generator.hint(game.level, game.position, game.velocity, previous_word=self.embeddings.lookup(game.last_word))
+            try:
+                word = self.generator.hint(game.level, game.position, game.velocity, previous_word=self.embeddings.lookup(game.last_word))
+            except LevelGenerationError as exc:
+                raise GameError("no_hint_available", "No legal hint is available from this position.") from exc
+            try:
+                resolved = self._resolve_allowed(game, word)
+            except GameError as exc:
+                if exc.code == "normalization_unavailable":
+                    raise
+                # A solver suggestion may be an exact inflection of a forbidden
+                # word. Filter with the same resolver, then choose a legal nudge.
+                target = self.embeddings.lookup(game.level.target_word)
+                candidates = np.argsort(-(self.embeddings.matrix @ target), kind="stable")
+                resolved = None
+                best_score = -float("inf")
+                for index in candidates[:128]:
+                    candidate = self.embeddings.words[int(index)]
+                    try:
+                        suggestion = self._resolve_allowed(game, candidate)
+                    except GameError as invalid:
+                        if invalid.code == "normalization_unavailable":
+                            raise
+                        continue
+                    mechanics = getattr(game.level, "mechanics", {}) or {}
+                    predicted, _ = step(game.position, game.velocity, suggestion.vector, self._physics_for(game),
+                                        previous_word=self.embeddings.lookup(game.last_word),
+                                        attractor=self.embeddings.lookup(mechanics["attractor"]) if mechanics.get("attractor") else None)
+                    score = cosine_similarity(predicted, target)
+                    if score > best_score:
+                        best_score, resolved = score, suggestion
+                if resolved is None:
+                    raise GameError("no_hint_available", "No legal hint is available from this position.")
             game.hints_used += 1
-            return {"word": word, "remaining": self._hints_limit(game) - game.hints_used}
+            return {**self._resolution_fields(resolved), "remaining": self._hints_limit(game) - game.hints_used}
 
     def serialize(self, game):
         level = game.level
@@ -243,6 +318,10 @@ class GameService:
             "power_shots_remaining": max(0, int(mechanics.get("power_shots", 0)) - game.power_used),
             "rating": rating, "history": list(game.history),
             "map": {"start": game.trail[0], "target": game.projection.project(self.embeddings.lookup(level.target_word)),
-                    "player": game.projection.project(game.position), "trail": list(game.trail), "landmarks": game.landmarks},
+                    "player": game.projection.project(game.position), "trail": list(game.trail),
+                    "landmarks": [{"word": item["word"], "position": item["position"], "similarity": item["similarity"]} for item in game.landmarks]},
+            "map3d": {"start": game.trail3d[0], "target": game.projection.project3d(self.embeddings.lookup(level.target_word)),
+                      "player": game.projection.project3d(game.position), "trail": list(game.trail3d),
+                      "landmarks": [{"word": item["word"], "position": item["position3d"], "similarity": item["similarity"]} for item in game.landmarks]},
             "physics": {"momentum": self.physics.momentum, "impulse": self.physics.impulse, "movement_model": self.physics.movement_model},
         }

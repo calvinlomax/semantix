@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from .config import Settings
-from .models.requests import HintRequest, MoveRequest, NewGameRequest
+from .models.requests import HintRequest, MoveRequest, NewGameRequest, PreviewRequest
 from .services.errors import GameError
 from .services.game import GameService
 
@@ -55,6 +55,10 @@ def create_app(service: GameService | None = None, settings: Settings | None = N
     @application.post("/api/game/move")
     def move(payload: MoveRequest):
         return application.state.game_service.move(payload)
+
+    @application.post("/api/game/preview")
+    def preview(payload: PreviewRequest):
+        return application.state.game_service.preview(payload)
 
     @application.get("/api/game/history/{game_id}")
     def history(game_id: str):

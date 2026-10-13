@@ -6,6 +6,24 @@ All gameplay lives on the server. Coordinates are rendering-only. JSON keys use 
 
 ```ts
 type Point = [number, number];
+type Point3D = [number, number, number];
+type Resolution = {
+  word: string; // Original submitted spelling, with surrounding whitespace trimmed.
+  resolved_word: string; // Model entry actually used; never a fuzzy spelling match.
+  resolution: 'exact' | 'normalized' | 'lemma';
+  normalization_message: string | null;
+};
+type Move = Resolution & {
+  number: number; similarity_before: number; similarity_after: number;
+  word_similarity: number; // Entered word's cosine similarity to the target.
+  delta: number; efficiency: number; power_shot: boolean;
+  position: Point; word_position: Point;
+  position3d: Point3D; word_position3d: Point3D;
+};
+type MapSpace<T> = {
+  start: T; target: T; player: T; trail: T[];
+  landmarks: {word: string; position: T; similarity: number}[];
+};
 type Game = {
   id: string; level_id: string;
   mode: 'daily' | 'free'; daily_date: string | null;
@@ -16,17 +34,35 @@ type Game = {
   threshold: number; feedback: string;
   hints_remaining: number; power_shots_remaining: number;
   rating: string | null;
-  history: {number: number; word: string; similarity_before: number;
-    similarity_after: number; delta: number; efficiency: number;
-    position: Point; word_position: Point; power_shot: boolean}[];
-  map: {start: Point; target: Point; player: Point; trail: Point[];
-    landmarks: {word: string; position: Point}[]};
+  history: Move[];
+  map: MapSpace<Point>;
+  map3d: MapSpace<Point3D>;
   physics: {momentum: number; impulse: number; movement_model: string};
 };
 ```
 
+`map` remains compatible with existing 2D clients. `map3d` uses the same fixed PCA transform, retaining a third component. Start, target, and landmarks remain fixed throughout a round; each successful move appends a landing position to both trails. Every `position` is the first two coordinates of its corresponding `position3d`. All scores and movement are calculated using 300-dimensional embeddings before projection. Older completed games in browser storage may lack `map3d` and resolution metadata; the UI renders them in 2D.
+
+`POST /api/game/preview` accepts `{game_id, word, expected_move?, power_shot?}` and returns:
+
+```ts
+type MovePreview = Move & {
+  game_id: string;
+  expected_move: number; // Current committed moves_used, not the predicted number.
+  would_win: boolean;
+};
+```
+
+Preview uses the same validation, resolution, physics, and scoring as submission. It does not change position, velocity, history, repetition tracking, move/hint/power budgets, status, or idempotency records. A subsequent submission with the same state, word, and power setting produces identical scores and coordinates. Include `expected_move` to reject a stale preview or submission with HTTP 409. Preview cannot accept client-supplied positions or velocities; unexpected request fields receive HTTP 422. The frontend debounces previews for 350 ms and discards responses after input or state changes. Daily previews default off; Free Play previews default on.
+
 `GET /api/model/status`: `{status: 'unloaded'|'loading'|'ready'|'error', name, dimensions, vocabulary_size, message}`. A new game triggers lazy initialization. `POST /api/model/load` explicitly warms it. Status can also expose `path` and `reduced`.
 
-`POST /api/game/hint` with `{game_id}` returns `{word, remaining}` (non-consuming move, consumes hint budget, easy 3 / medium 1 / hard 0). `GET /api/health` responds without loading the model.
+`POST /api/game/hint` with `{game_id}` returns `Resolution & {remaining: number}` (non-consuming move, consumes hint budget, easy 3 / medium 1 / hard 0). Hints must pass the same word/rule validation before consuming a hint. `GET /api/health` responds without loading the model.
 
-Errors have non-2xx status and `{error: {code, message}}`. Invalid moves do not consume moves. The exact target word cannot be submitted: reach its neighborhood by entering related words. Repeated other words are permitted. UTC defines daily challenge identity; daily results are locally deduplicated by date. Retrying a daily can be practiced but not scored twice.
+Word lookup prefers the exact model entry, then case/Unicode normalization, then an unambiguous WordNet lemma available in the model. `normalization_message` is, for example, `"Prepared" accepted using "prepare"`. History always preserves `word`; rendering and physics use the resolved embedding. Ambiguous missing forms such as `better` (good/well) are rejected with an explanation instead of selecting a meaning based on vocabulary availability. No synonyms or fuzzy spelling matches are used.
+
+Target entry is rejected both directly and when a fallback resolves to the target model entry. Exact inflections with distinct embeddings retain their prior legality. Forbidden-word rules and optional `allow_repeats: false` mechanics compare grammatical families, so inflections cannot bypass those restrictions. Standard levels allow repeated non-target words. These rules apply to hints, previews, and committed moves.
+
+Errors have non-2xx status and `{error: {code, message}}`. Relevant codes include `unknown_word`, `ambiguous_word`, `invalid_word`, `target_word`, `forbidden_word`, `repeated_word`, `forbidden_region`, `stale_game`, and `normalization_unavailable` (HTTP 503, local WordNet setup required). Invalid moves and previews spend no move or power budget. Reusing a move `request_id` with a different submitted word/case or power setting produces `request_conflict`; an identical retry returns the saved response.
+
+UTC defines daily challenge identity; daily results are locally deduplicated by date. Retrying a daily can be practiced but not scored twice.

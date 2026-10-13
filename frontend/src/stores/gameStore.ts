@@ -3,17 +3,19 @@ import {persist} from 'zustand/middleware'
 import {api, ApiError} from '../lib/api'
 import {addResult, utcDay} from '../lib/stats'
 import type {CompletedGame, Difficulty, Game, ModelStatus, Mode} from '../lib/types'
-type Settings = {reducedMotion: boolean; showLabels: boolean}
+export type Settings = {reducedMotion: boolean; showLabels: boolean; previewDaily: boolean; previewFree: boolean; followPlayer: boolean}
+export const defaultSettings: Settings = {reducedMotion: false, showLabels: true, previewDaily: false, previewFree: true, followPlayer: false}
 interface GameState {
   game: Game | null; model: ModelStatus | null; mode: Mode; difficulty: Difficulty; busy: boolean; error: string | null; setupError: string | null
-  hint: string | null; results: CompletedGame[]; settings: Settings; activeGames: Partial<Record<Mode, string>>; savedDaily: Game | null
+  hint: string | null; hintMessage: string | null; results: CompletedGame[]; settings: Settings; activeGames: Partial<Record<Mode, string>>; savedDaily: Game | null; tutorialSeen: boolean
   initialize: () => Promise<void>; start: (mode?: Mode, difficulty?: Difficulty, retry?: boolean) => Promise<void>
   submit: (word: string, power?: boolean) => Promise<boolean>; getHint: () => Promise<void>; dismissError: () => void; updateSettings: (settings: Partial<Settings>) => void
+  completeTutorial: () => void
 }
 const message = (error: unknown) => error instanceof Error ? error.message : 'Something went wrong. Please try again.'
 export const useGameStore = create<GameState>()(persist((set, get) => ({
-  game: null, model: null, mode: 'daily', difficulty: 'medium', busy: false, error: null, setupError: null, hint: null,
-  results: [], settings: {reducedMotion: false, showLabels: true}, activeGames: {}, savedDaily: null,
+  game: null, model: null, mode: 'daily', difficulty: 'medium', busy: false, error: null, setupError: null, hint: null, hintMessage: null,
+  results: [], settings: defaultSettings, activeGames: {}, savedDaily: null, tutorialSeen: false,
   initialize: async () => {
     if (get().busy) return
     set({busy: true, error: null, setupError: null})
@@ -33,7 +35,7 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
   start: async (mode = get().mode, difficulty = get().difficulty, retry = false) => {
     if (get().busy) return
     const previous = get().game
-    set({busy: true, error: null, setupError: null, hint: null, mode, difficulty})
+    set({busy: true, error: null, setupError: null, hint: null, hintMessage: null, mode, difficulty})
     try {
       let game: Game | undefined
       if (mode !== previous?.mode && get().activeGames[mode]) {
@@ -53,7 +55,7 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
   },
   submit: async (word, power = false) => {
     const game = get().game; if (!game || game.status !== 'playing' || get().busy) return false
-    set({busy: true, error: null, hint: null})
+    set({busy: true, error: null, hint: null, hintMessage: null})
     try {
       const updated = await api.move(game, word, power)
       set(state => ({game: updated, results: addResult(state.results, updated), savedDaily: updated.mode === 'daily' && updated.status !== 'playing' ? updated : state.savedDaily}))
@@ -69,9 +71,17 @@ export const useGameStore = create<GameState>()(persist((set, get) => ({
   getHint: async () => {
     const game = get().game; if (!game || get().busy || !game.hints_remaining) return
     set({busy: true, error: null})
-    try {const result = await api.hint(game.id); set({hint: result.word, game: {...game, hints_remaining: result.remaining}})}
+    try {const result = await api.hint(game.id); set({hint: result.word, hintMessage: result.normalization_message, game: {...game, hints_remaining: result.remaining}})}
     catch (error) {set({error: message(error)})} finally {set({busy: false})}
   },
   dismissError: () => set({error: null}),
   updateSettings: settings => set(state => ({settings: {...state.settings, ...settings}})),
-}), {name: 'semantix-v1', partialize: state => ({mode: state.mode, difficulty: state.difficulty, results: state.results, settings: state.settings, activeGames: state.activeGames, savedDaily: state.savedDaily})}))
+  completeTutorial: () => set({tutorialSeen: true}),
+}), {
+  name: 'semantix-v1',
+  partialize: state => ({mode: state.mode, difficulty: state.difficulty, results: state.results, settings: state.settings, activeGames: state.activeGames, savedDaily: state.savedDaily, tutorialSeen: state.tutorialSeen}),
+  merge: (persisted, current) => {
+    const saved = persisted as Partial<GameState> | undefined
+    return {...current, ...saved, settings: {...defaultSettings, ...saved?.settings}}
+  },
+}))

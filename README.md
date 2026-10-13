@@ -15,11 +15,14 @@ brew install python@3.12 node
 python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r backend/requirements.txt
+python -m backend.scripts.prepare_nlp
 npm --prefix frontend install
 cp .env.example .env
 ```
 
 All Python packages stay in the virtual environment. Do not install into a system-managed Python environment. The `.env` copy is optional: defaults match the commands below. Existing prepared weights and catalog can be reused; model preparation is a one-time step.
+
+`prepare_nlp` downloads the small NLTK WordNet corpus once into ignored `data/nltk_data/`. Set `SEMANTIX_NLTK_DATA` to use another directory. Word recognition then runs locally, without request-time downloads or repeated NLP initialization. If the corpus is missing, word validation returns an actionable setup error.
 
 ### Prepare the genuine embeddings
 
@@ -79,14 +82,25 @@ Open **http://127.0.0.1:5173**. Vite proxies `/api` to the backend. API document
 - **Free play:** unlimited rounds selected from the validated catalog, with easy/medium/hard difficulty and deterministic retry.
 - **Easy:** eight moves, larger target neighborhood, three hints. **Medium:** six moves and one hint. **Hard:** five moves, a smaller neighborhood, and no hints.
 - Enter a related word and press Enter or the arrow button. Momentum can make a word help or hurt depending on your route. The move history shows the exact similarity change.
-- Drag or zoom the semantic map and use its reset control. The map is an approximation: the numerical cosine similarity is authoritative. It is not a probability or a literal physical distance.
-- Help explains the rules. Settings control motion. Statistics and completed results persist in this browser. The share summary contains move outcomes without revealing words.
+- Desktop starts in **3D**: drag to rotate, scroll/pinch to zoom, and right-drag to pan. Use the reset button or switch to **2D** at any time. Mobile starts in 2D; unavailable WebGL automatically falls back to 2D. Focus the 3D map to rotate with arrow keys, zoom with +/−, or reset with R/Home.
+- Settings offer optional camera following, landmark labels, reduced motion, and separate move-preview preferences. Previews start **on in Free Play** and **off in Daily Challenge**. A ghost marker, dashed trajectory, and predicted similarity change show the backend's proposed move without spending a turn.
+- The proximity meter shows current cosine similarity and the winning threshold. After each move, feedback reports improvement or regression and remaining moves. Maps approximate 300-dimensional relationships; numerical similarity is authoritative, not a probability or a literal physical distance.
+- The first-visit tutorial explains attraction and momentum. Enter submits, the clear button resets input, and retry/new-puzzle controls remain nearby. Move history collapses; completed rounds replay the trajectory, respecting reduced-motion preferences.
+- Statistics, preferences, and completed results persist in this browser. The share summary contains move outcomes without revealing words.
+
+### Word recognition
+
+The server first looks for the exact submitted model entry, then applies case/Unicode presentation normalization, then uses NLTK WordNet lemmatization as a fallback. For example, an unavailable `prepared` can use `prepare`, `studies` can use `study`, and `children` can use `child`. An available exact form always keeps its own original embedding. The move history keeps your submitted spelling and shows a subtle notice such as `"prepared" accepted using "prepare"` when another entry is used.
+
+There are no fuzzy spelling matches or synonym substitutions. When multiple base forms are plausible for an isolated word, the server asks for the intended base form rather than guessing: `better`, for example, can mean `good` or `well`. Exact entries remain usable even when their possible lemmas are ambiguous. Unknown words are rejected without spending a move.
+
+Moves, previews, and hints share the same resolution and rule validation. Entering the target directly, or a fallback that resolves to the target's model entry, is prohibited. An exact inflection with its own different embedding remains legal under the existing target rule. Forbidden-word rules and any level that disables repetition compare grammatical families, including exact inflections, to prevent bypasses. Standard levels still allow repeated words.
 
 ## Architecture
 
 ```text
 frontend/                 React + TypeScript + Vite
-  src/components/         Stable D3 map, accessible dialogs and game UI
+  src/components/         Stable 2D/3D maps, accessible dialogs and game UI
   src/stores/             Zustand game, preferences, local statistics
   src/lib/                API contract, statistics, sharing
   src/styles/             Tailwind + custom dark visual design
@@ -95,13 +109,13 @@ backend/
   app/models/             Strict Pydantic request validation
   app/services/           Authoritative sessions, daily selection, bounded store
   app/engine/             Embeddings, physics, scoring, PCA, level search
-  scripts/                Model conversion and calibrated level generation
+  scripts/                Model conversion, WordNet setup, calibrated levels
   tests/                  Synthetic 300-D unit/API tests and real-model integration
 data/vocabulary/          Curated familiar words and an additional denylist
 data/levels/              Validated catalog and calibration metadata
 ```
 
-The frontend uses Tailwind CSS, Motion, D3, Zustand, and Lucide icons. The backend uses FastAPI, Pydantic, NumPy, SciPy, Gensim, and Uvicorn. Only map coordinates, words, scores, and round metadata leave the server. No embedding matrix or solution certificate is sent to the browser.
+The frontend uses Tailwind CSS, Motion, D3, Three.js with React Three Fiber/Drei, Zustand, and Lucide icons. The backend uses FastAPI, Pydantic, NumPy, SciPy, Gensim, NLTK, and Uvicorn. Only map coordinates, words, scores, and round metadata leave the server. No embedding matrix or solution certificate is sent to the browser.
 
 `API_CONTRACT.md` documents request/response shapes. Main endpoints:
 
@@ -113,6 +127,7 @@ The frontend uses Tailwind CSS, Motion, D3, Zustand, and Lucide icons. The backe
 | `GET /api/game/daily` | Start today's UTC challenge |
 | `POST /api/game/new` | New free-play round or exact retry |
 | `POST /api/game/move` | Validate and commit one authoritative move |
+| `POST /api/game/preview` | Validate and predict a move without changing the round |
 | `GET /api/game/history/{game_id}` | Resume an existing session |
 | `POST /api/game/hint` | Spend a hint, without spending a move |
 
@@ -134,7 +149,7 @@ A zero direction contributes no impulse. A perfectly cancelling update keeps the
 
 The configurable `displacement` alternative replaces the direction origin with the previously submitted word embedding: `normalize(w - previous_word)`. Set `SEMANTIX_MOVEMENT_MODEL=displacement` and regenerate levels to compare it. The default movement has the requested 0.35 momentum. Additional gravity, forbidden words/regions, boosted impulses, and tighter precision thresholds have modular engine support; standard generated levels keep advanced modifiers disabled. These require separate calibration/playtesting before being enabled in a game mode.
 
-Each round fits PCA once to a fixed set of start, target, and related landmark embeddings. A deterministic SVD sign convention avoids arbitrary mirrored retries. Positions and submitted words use the same retained transform for the whole round. The 2D projection never influences scoring, physics, solvability, or victory.
+Each round fits three-component PCA once to a fixed set of start, target, and related landmark embeddings. A deterministic SVD sign convention avoids arbitrary mirrored retries. Positions and submitted words use the same retained transform for the whole round; the first two coordinates retain the existing 2D projection. Camera movement and trajectory animations operate only on display coordinates. Neither projection influences scoring, physics, solvability, or victory.
 
 ## Level calibration
 
@@ -147,7 +162,7 @@ Beam search provides a **feasible route**, not a proof of globally shortest play
 ## Verification
 
 ```sh
-# Synthetic fixtures only: no model download needed.
+# Synthetic embeddings: no Word2Vec download needed; prepare WordNet once above.
 .venv/bin/python -m pytest -q
 npm --prefix frontend test
 npm --prefix frontend run build
@@ -160,13 +175,15 @@ SEMANTIX_TEST_GOOGLE=1 .venv/bin/python -m pytest -m integration -q
 npm --prefix frontend run test:e2e
 ```
 
-Tests cover normalization and zero vectors, lookup and unknown words, cosine bounds, momentum and deterministic movement, alternate forces, calibrated search and solution replay, fixed PCA projection, strict API validation, authoritative win/loss transitions, move budgets, stale/concurrent requests, retry identity, UTC daily selection, bounded session expiry, local scoring/streaks, and the rendered gameplay flow. Real-model tests are opt-in so ordinary tests stay fast and offline.
+Tests cover vector normalization, cached exact-first word resolution, regular/irregular inflections, ambiguity and rule protections, original spelling preservation, preview/submission equality and non-mutation, stable 3D/2D projection, and existing physics, calibration, sessions, scoring, and daily behavior. Browser tests cover completed games, preview cancellation, settings persistence, 2D/3D switching, and a WebGL-disabled fallback on desktop/mobile. Real-model tests also replay all 36 saved solution certificates. Ordinary tests run offline once WordNet is prepared.
 
-See [VERIFICATION.md](VERIFICATION.md) for the completed local verification: 30 Python tests, five frontend unit tests, four desktop/mobile browser tests, and the production build passed with genuine Google vectors.
+See [VERIFICATION.md](VERIFICATION.md) for the local verification record and reproducible commands.
 
 ## Performance and configuration
 
-`.env.example` lists model paths, original binary limits, physics, allowed local origins, and session bounds. Weights load once per backend process, with native vector arrays memory-mapped read-only. Curated embeddings are normalized once into a compact matrix; other valid lookups use a bounded cache. Gameplay performs 300-dimensional arithmetic and reuses projection anchors. Search scans only the curated matrix, never all three million tokens.
+`.env.example` lists model/corpus paths, original binary limits, physics, allowed local origins, and session bounds. Weights load once per backend process, with native vector arrays memory-mapped read-only. Curated embeddings are normalized once into a compact matrix; other lookups, lexical analyses, and resolved forms use bounded caches. Gameplay performs 300-dimensional arithmetic and reuses projection anchors. Search scans only the curated matrix, never all three million tokens.
+
+The 3D renderer is loaded on demand and renders only when the scene changes, with capped pixel density and a small landmark set. The 2D fallback avoids downloading the Three.js chunk. Preview requests debounce for 350 ms; replaced requests are aborted and stale responses are discarded. Preview and submission share one backend calculation path, under the session lock.
 
 Use **one Uvicorn worker** with the in-memory store. For multiple workers or durable sessions, replace `GameStore` with shared storage and keep moves atomic. Backend restarts expire active sessions; completed browser statistics survive. The dev frontend uses Vite's `/api` proxy; an independently hosted production build needs equivalent same-origin reverse proxy routing and a persistent Python backend. `npm --prefix frontend run build` outputs `frontend/dist/`.
 
@@ -174,9 +191,9 @@ Use **one Uvicorn worker** with the in-memory store. For multiple workers or dur
 
 - The included catalog is finite, so free-play and daily puzzles eventually repeat. Generate a larger catalog for more variety. Installations must share both model/vocabulary and the exact catalog for identical daily selection.
 - Difficulty and temperature bands are measured against genuine vectors and solver trajectories, but have not undergone a broad human playtest.
-- A reduced vocabulary rejects words absent from that subset. Prepare the full model for broader input coverage. News-trained embeddings can encode historical biases; the curated word list limits puzzle content but cannot remove those biases from the vectors.
+- A reduced vocabulary accepts additional grammatical forms only when a safe base form exists in that subset. Words without an embedding or an unambiguous available base are rejected. Prepare the full model for broader input coverage. News-trained embeddings can encode historical biases; the curated word list limits puzzle content but cannot remove those biases from the vectors.
 - Local statistics are browser metadata, not an account or an anti-cheat service. Clearing browser storage clears them. A daily result is deduplicated locally; there is no global leaderboard.
 - Only standard generated levels are enabled by default. Additional mechanics are experimental engine capabilities.
-- The 2D map necessarily distorts 300-dimensional relationships; numerical cosine feedback remains authoritative.
+- Both 2D and 3D maps distort 300-dimensional relationships; numerical cosine feedback remains authoritative. Dense labels can overlap as the 3D camera rotates; landmark labels can be hidden in Settings.
 
 Model documentation: [Google News model in Gensim's registry](https://github.com/RaRe-Technologies/gensim-data), [Gensim KeyedVectors and native memory mapping](https://radimrehurek.com/gensim/models/keyedvectors.html). Word vectors are a separately downloaded model, not bundled source assets.
