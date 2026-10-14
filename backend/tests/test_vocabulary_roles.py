@@ -121,3 +121,17 @@ def test_app_rejects_original_binary_and_missing_native_manifest(model_files):
     path.with_suffix(".kv.manifest.json").unlink()
     with pytest.raises(ModelUnavailableError, match="manifest"):
         store_for(model_files)
+
+
+def test_separate_hint_file_intersects_model_and_rejects_blocked_families(model_files, tmp_path):
+    path, guesses, targets, blocked, _ = model_files
+    hints = tmp_path / 'hints.txt'
+    hints.write_text('computer\npoisoned\nzzmissingword\n')
+    store = EmbeddingStore(path, guesses, target_vocabulary_path=targets,
+                           hint_vocabulary_path=hints, denylist_path=blocked).load()
+    assert store.hint_words == ('computer',)
+    assert 'computer' not in store.words
+    assert store.status()['hint_vocabulary_size'] == 1
+    from backend.app.engine.semantic import SemanticIndex
+    neighbors = SemanticIndex(store).neighbors(store.words[0])
+    assert [word for word, _ in neighbors] == ['computer']

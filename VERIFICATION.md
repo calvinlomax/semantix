@@ -32,3 +32,24 @@ npm --prefix frontend run test:e2e
 ```
 
 The Python test runner emits one dependency deprecation warning from Starlette's test client. Vite reports a size warning for the lazy 3D chunk (approximately 974 KB minified / 264 KB gzip); 2D play does not load it. No test or build fails. Browser checks require installed Google Chrome and the expanded prepared model/catalog files. Without the model, ordinary Python tests use explicit synthetic 300-dimensional fixtures, with the four integration tests skipped. WordNet must still be prepared once; runtime requests never download corpus data.
+
+Semantic ranking and safe display vocabulary (2026-10-13)
+-------------------------------------------------------
+
+- Backend suite: 102 passed with real Google integration enabled; the additional
+  separate hint-file/model-intersection test also passed (103 distinct tests).
+- Frontend unit tests: 9 passed. Production TypeScript/Vite build passed.
+- Browser checks: 10 desktop/mobile cases passed initially; both remaining cases
+  passed after separating history rank and normalization CSS selectors.
+- Local model: 73,604 validated rank entries, 2,674 puzzle words, 2,583 safe
+  hint/display entries. Full Google News was not loaded or re-extracted.
+- Target-quality checks now gate new level generation; saved catalog retained.
+  Existing targets captain, lens, audience, gecko, therapy, protein, and polar
+  fail the new conservative criteria. This is documented rather than silently
+  replacing daily puzzles.
+- Local measurement after model initialization: first rank/index construction
+  1.076 seconds; 100 repeated feedback calls averaged 0.003 ms each; process peak
+  RSS 394 MiB (one cached target, macOS Apple Silicon). This is not a production
+  load test or a measurement of all 32 cache slots.
+- Existing non-failing warnings remain: Starlette/anyio deprecation and Vite's
+  large lazy-loaded 3D bundle warning.

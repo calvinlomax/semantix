@@ -178,12 +178,30 @@ class LevelGenerator:
         *,
         previous_word: np.ndarray | None = None,
     ) -> str:
-        result = self.search(level.start_word, level.target_word, 2, position=position,
-                             velocity=velocity, previous_word=previous_word, mechanics=level.mechanics)
-        if not result.best_by_depth:
-            raise LevelGenerationError("No valid hint is available for this position.")
-        # Look ahead one additional move to account for momentum.
-        return result.best_by_depth[-1].path[0]
+        from .semantic import SemanticIndex
+        target = self.store.lookup(level.target_word)
+        mechanics = level.mechanics or {}
+        changes = {key: mechanics[key] for key in ("gravity_strength", "power_multiplier", "forbidden_similarity") if key in mechanics}
+        config = PhysicsConfig(**{**asdict(self.config), **changes})
+        best, score = None, -float("inf")
+        forbidden_keys = {key for word in mechanics.get("forbidden_words", []) for key in self.store.rule_keys(word)}
+        for word, _ in SemanticIndex(self.store).neighbors(level.target_word, 128):
+            resolved = self.store.resolve(word)
+            if resolved.rule_keys & forbidden_keys:
+                continue
+            if is_forbidden(word, resolved.vector,
+                            forbidden_vectors=[self.store.lookup(w) for w in mechanics.get("forbidden_regions", [])],
+                            threshold=config.forbidden_similarity):
+                continue
+            predicted, _ = step(position, velocity, resolved.vector, config,
+                                previous_word=previous_word,
+                                attractor=self.store.lookup(mechanics["attractor"]) if mechanics.get("attractor") else None)
+            similarity = cosine_similarity(predicted, target)
+            if similarity > score:
+                best, score = word, similarity
+        if best is None:
+            raise LevelGenerationError("No safe hint is available for this position.")
+        return best
 
     def validate(self, level: Level) -> bool:
         if level.start_word not in self.store.words or level.target_word not in self.store.words:
@@ -235,7 +253,7 @@ class LevelGenerator:
         ranked = np.concatenate((np.argsort(-start_sim, kind="stable")[:8],
                                  np.argsort(-target_sim, kind="stable")[:8],
                                  np.argsort(-(start_sim + target_sim), kind="stable")[:8]))
-        return tuple(dict.fromkeys(words[int(index)] for index in ranked if words[int(index)] not in {start, target}))[:18]
+        return tuple(dict.fromkeys(words[int(index)] for index in ranked if words[int(index)] not in {start, target} and words[int(index)] in self.store.hint_words))[:18]
 
     def generate(self, count_per_difficulty: int = 3, seed: int = 42) -> list[Level]:
         if count_per_difficulty < 1:
@@ -243,6 +261,8 @@ class LevelGenerator:
         words, matrix = self.store.words, self.store.matrix
         if len(words) < 20:
             raise LevelGenerationError("Level calibration requires at least 20 curated words.")
+        from .semantic import SemanticIndex
+        semantic = SemanticIndex(self.store)
         rng = np.random.default_rng(seed)
         pairs = rng.integers(0, len(words), size=(max(2048, len(words)), 2))
         pairs = pairs[pairs[:, 0] != pairs[:, 1]]
@@ -270,6 +290,8 @@ class LevelGenerator:
             used: set[tuple[str, str]] = set()
             for _ in range(pool_size * 16):
                 target_index = int(rng.integers(len(words)))
+                if not semantic.target_quality(words[target_index])["accepted"]:
+                    continue
                 similarities = matrix @ matrix[target_index]
                 if difficulty == "easy":
                     nearest = np.argsort(-similarities, kind="stable")
@@ -353,7 +375,7 @@ class LevelGenerator:
                                  "initial_similarity_band": list(bands[difficulty]),
                                  "solution_similarities": list(node.similarities),
                                  "thresholds": dict(thresholds), "sampled_pairs": len(pairs),
-                                 "human_playtested": False},
+                                 "human_playtested": False, "target_quality": semantic.target_quality(target)},
                 )
                 if self.validate(level):
                     candidates.append(level)

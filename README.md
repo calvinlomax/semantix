@@ -231,3 +231,49 @@ Keep the generated text vocabularies and catalog in Git. Model files, original a
 - Both 2D and 3D maps distort 300-dimensional relationships; numerical cosine feedback remains authoritative. Dense labels can overlap as the 3D camera rotates; landmark labels can be hidden in Settings.
 
 Model documentation: [Google News model in Gensim's registry](https://github.com/RaRe-Technologies/gensim-data), [Gensim KeyedVectors and native memory mapping](https://radimrehurek.com/gensim/models/keyedvectors.html). Word vectors are a separately downloaded model, not bundled source assets.
+
+Vocabulary roles and semantic feedback
+-------------------------------------
+
+The builder now also writes `data/vocabulary/hint_words.txt`. It selects manually
+curated words with wordfreq English Zipf frequency ≥3.0, retaining 2,585 source
+words (2,583 in the local prepared model). Configure it with
+`SEMANTIX_HINT_VOCABULARY_PATH=data/vocabulary/hint_words.txt`. Hints and visible
+map neighbors must belong to this list and pass blocked-family validation.
+Guess membership still comes from the prepared .kv, not these display lists.
+The broad source remains 94,037 candidates, with 73,604 retained locally.
+
+Each preview and committed move includes semantic rank against valid entries in
+the prepared guess model, including the target itself. Inflected entries with
+their own embeddings remain separate ranked entries; lemma fallbacks share the
+base entry's rank. Blocked families and invalid tokens are excluded. Equal cosine
+scores share a competition rank. This ranks model entries, not the unbounded set
+of spellings that can resolve to them. Rank feedback describes the submitted
+word; player-position similarity still determines movement and winning.
+
+Buckets are top 100 first, then burning (≥99th percentile), hot (≥95th),
+warm (≥80th), cold (≥50th), and ice cold. Warmer/colder compares the word's cosine
+with the best previous guess and with the immediately previous guess, using a
+1e-6 tolerance. Family repetition is reported even when the level allows repeats.
+Trail labels are explicit heuristics: adjacent guess cosine ≥0.4 means “same
+cluster”; below that means “new semantic cluster”; below 0.15 also means a large
+semantic jump. These are similarity cues, not linguistic category predictions.
+
+New level generation checks target quality before solving: a target must be in
+the safe display list, have at least three safe neighbors at cosine ≥0.25, average
+cosine ≥0.15 over its nearest 100 valid entries, at least five safe entries among
+those neighbors, and no more than eight target-family variants among its nearest
+20 entries. The safe-neighbor share is a conservative proxy for neighborhood
+quality, not a named-entity classifier. Quality metrics and rejection reasons are
+available through the engine; generated levels save their quality metrics.
+The existing saved catalog is still validated by its original vector fingerprint
+and solution replay. It is not silently regenerated: seven existing targets fail
+the new conservative selection criteria and are excluded from future generation.
+Run the documented level-generation command when intentionally replacing the
+catalog (which changes daily puzzle identities).
+
+Rankings use NumPy dot products on the existing memory-mapped 300d vectors,
+one resident norm array, and a bounded cache of 32 target rankings. No normalized
+copy of the full matrix or ANN dependency is required. Safe hints choose among
+128 target-near display words, recheck all session rules, and score the predicted
+movement with the existing physics. Hints exclude the target's entire word family.

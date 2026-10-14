@@ -99,7 +99,7 @@ main {padding-top:43px} .page-intro {display:flex; align-items:center; justify-c
 .history-toggle {display:inline-flex; align-items:center; gap:7px; background:none; padding:6px 0; font:inherit; color:inherit}
 .history-toggle>svg {transition:transform .18s}
 .history-toggle>svg.collapsed {transform:rotate(-90deg)}
-.history-normalization {display:block; margin-top:4px; color:#93859f; font-size:10px; font-weight:400; line-height:1.4}
+.history-normalization, .history-rank {display:block; margin-top:4px; color:#93859f; font-size:10px; font-weight:400; line-height:1.4}
 .history-word {overflow-wrap:anywhere; max-width:230px}
 .history-word>span>svg {display:inline}
 .welcome-ready {width:100%; min-height:44px}
@@ -111,7 +111,7 @@ main {padding-top:43px} .page-intro {display:flex; align-items:center; justify-c
   .hint-button {min-height:44px}
   .round-controls .text-button {min-height:44px; font-size:12px}
   .history-toggle {min-height:44px}
-  .history-normalization {font-size:10px}
+  .history-normalization, .history-rank {font-size:10px}
   .history-word {max-width:120px}
   .move-feedback {font-size:12px; padding:11px 12px}
   .move-feedback>span,.move-feedback .normalization-message,.preview-feedback,.preview-feedback small {font-size:12px}

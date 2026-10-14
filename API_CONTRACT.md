@@ -84,3 +84,37 @@ Target entry is rejected both directly and when a fallback resolves to the targe
 Errors have non-2xx status and `{error: {code, message}}`. Relevant codes include `unknown_word`, `ambiguous_word`, `invalid_word`, `target_word`, `forbidden_word`, `repeated_word`, `forbidden_region`, `stale_game`, and `normalization_unavailable` (HTTP 503, local WordNet setup required). Invalid moves and previews spend no move or power budget. Reusing a move `request_id` with a different submitted word/case or power setting produces `request_conflict`; an identical retry returns the saved response.
 
 UTC defines daily challenge identity; daily results are locally deduplicated by date. Retrying a daily can be practiced but not scored twice.
+
+Semantic feedback additions
+--------------------------
+
+Both move-history entries and move previews include `semantic`:
+
+```json
+{
+  "rank": 412,
+  "vocabulary_size": 73604,
+  "percentile": 99.4416,
+  "bucket": "burning",
+  "versus_best": "warmer",
+  "versus_previous": "warmer",
+  "same_family": false,
+  "cluster": "same cluster",
+  "large_semantic_jump": false,
+  "previous_guess_similarity": 0.52
+}
+```
+
+Ranks are 1-based over validated prepared-model entries, target included; equal
+cosines share rank. Percentile is `100 * (N - rank) / max(1, N - 1)`.
+`versus_best` and `versus_previous` are `first | warmer | colder | same`.
+`cluster` is `first | same cluster | new semantic cluster`; these are cosine
+heuristics documented in README, not taxonomy. Previous similarity is null on
+the first guess. Preview computes these fields without changing history or
+repetition state. `word_similarity` remains the raw word-to-target cosine.
+The existing position similarity, movement, win thresholds, and response fields
+are unchanged. History retains original submitted spelling.
+
+Model status adds `hint_vocabulary_size`: the number of safe display words
+retained in the model. Rank population can be smaller than model vocabulary size
+when a deployment adds blocked families after preparation.

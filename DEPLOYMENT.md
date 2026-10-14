@@ -108,3 +108,11 @@ peaked near 343 MiB RSS. These are development measurements, not a production
 capacity guarantee; allow memory headroom for Python, WordNet, request traffic,
 and the bounded caches. The reduced vector matrix is mapped read-only, and only
 the 2,674 retained target vectors are copied into the normalized search matrix.
+
+Set `SEMANTIX_HINT_VOCABULARY_PATH=data/vocabulary/hint_words.txt` alongside the
+guess and target paths. Deploy the generated text list with the application.
+This update needs no new model extraction when allowed_guesses.txt is unchanged:
+use the existing reduced .kv, its vector sidecar, and preparation manifest.
+Never use the original full Google News archive at runtime. Model artifacts
+remain ignored by Git. Per-target ranking caches are bounded to 32 targets;
+budget additional memory for these arrays and the initial validated-entry index.

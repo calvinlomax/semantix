@@ -117,6 +117,9 @@ def main() -> None:
             ),
             "level_words.txt": write_list(args.output_dir / "level_words.txt", targets, "Manually curated, familiar puzzle words; retain this ordering."),
         }
+        hints = [word for word in targets if zipf_frequency(word, "en", wordlist="large") >= 3.0]
+        hashes["hint_words.txt"] = write_list(args.output_dir / "hint_words.txt", hints, "Safe familiar display words: curated seed with English Zipf frequency at least 3.")
+        detail["hint_word_count"] = len(hints)
         manifest = {
             "schema_version": 1, "wordfreq_version": version("wordfreq"), "wordnet_version": wordnet.get_version(),
             "sources": {"wordfreq": "https://github.com/rspeer/wordfreq", "wordnet": "https://wordnet.princeton.edu/", "curated": args.curated.name},

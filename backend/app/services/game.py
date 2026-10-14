@@ -10,7 +10,8 @@ import numpy as np
 
 from ..config import Settings
 from ..engine.embeddings import EmbeddingStore, WordValidationError, clean_word
-from ..engine.level_generator import Level, LevelGenerator, LevelGenerationError
+from ..engine.level_generator import Level, LevelGenerator
+from ..engine.semantic import SemanticIndex
 from ..engine.physics import PhysicsConfig, step
 from ..engine.projection import Projection
 from ..engine.scoring import cosine_similarity, efficiency, feedback
@@ -55,9 +56,10 @@ class GameService:
         self.settings = settings
         self.embeddings = embeddings if embeddings is not None else EmbeddingStore(
             settings.model_path, settings.vocabulary_path, denylist_path=settings.blocked_path,
-            target_vocabulary_path=settings.target_vocabulary_path, require_prepared=True,
+            target_vocabulary_path=settings.target_vocabulary_path, hint_vocabulary_path=settings.hint_vocabulary_path, require_prepared=True,
             binary=settings.model_binary, limit=settings.model_limit,
         )
+        self.semantic = SemanticIndex(self.embeddings)
         self.physics = PhysicsConfig(momentum=settings.momentum, impulse=settings.impulse, movement_model=settings.movement_model)
         self.store = GameStore(settings.max_games, settings.game_ttl)
         self.levels = levels
@@ -73,6 +75,7 @@ class GameService:
             "status": self._state, "name": "Google News Word2Vec", "dimensions": 300,
             "vocabulary_size": details.get("vocabulary_size", 0),
             "target_vocabulary_size": details.get("target_vocabulary_size", details.get("curated_words", 0)),
+            "hint_vocabulary_size": details.get("hint_vocabulary_size", len(self.embeddings.hint_words) if details.get("ready") else 0),
             "requested_guess_count": details.get("requested_guess_count"),
             "missing_guess_count": details.get("missing_guess_count", 0),
             "requested_target_count": details.get("requested_target_count"),
@@ -136,7 +139,7 @@ class GameService:
                 level = choice(candidates)
         start = self.embeddings.lookup(level.start_word)
         target = self.embeddings.lookup(level.target_word)
-        landmark_words = list(dict.fromkeys([level.start_word, level.target_word, *level.landmark_words]))
+        landmark_words = list(dict.fromkeys([level.start_word, level.target_word, *(word for word in level.landmark_words if word in self.semantic.hint_words)]))
         anchors = np.stack([self.embeddings.lookup(word) for word in landmark_words])
         projection = Projection.fit(anchors)
         position = start.copy()
@@ -218,6 +221,7 @@ class GameService:
             "number": len(game.history) + 1, **self._resolution_fields(resolved),
             "similarity_before": before, "similarity_after": after, "delta": after - before,
             "word_similarity": cosine_similarity(resolved.vector, target),
+            "semantic": self.semantic.feedback(game.level.target_word, resolved, game.history, game.used_word_keys),
             "efficiency": efficiency(before, after, game.level.threshold),
             "position": game.projection.project(position), "word_position": game.projection.project(resolved.vector),
             "position3d": game.projection.project3d(position), "word_position3d": game.projection.project3d(resolved.vector),
@@ -270,38 +274,24 @@ class GameService:
                 raise GameError("game_complete", "This round is complete.", 409)
             if game.hints_used >= self._hints_limit(game):
                 raise GameError("no_hints", "No hints remain for this round.")
-            try:
-                word = self.generator.hint(game.level, game.position, game.velocity, previous_word=self.embeddings.lookup(game.last_word))
-            except LevelGenerationError as exc:
-                raise GameError("no_hint_available", "No legal hint is available from this position.") from exc
-            try:
-                resolved = self._resolve_allowed(game, word)
-            except GameError as exc:
-                if exc.code == "normalization_unavailable":
-                    raise
-                # A solver suggestion may be an exact inflection of a forbidden
-                # word. Filter with the same resolver, then choose a legal nudge.
-                target = self.embeddings.lookup(game.level.target_word)
-                candidates = np.argsort(-(self.embeddings.matrix @ target), kind="stable")
-                resolved = None
-                best_score = -float("inf")
-                for index in candidates[:128]:
-                    candidate = self.embeddings.words[int(index)]
-                    try:
-                        suggestion = self._resolve_allowed(game, candidate)
-                    except GameError as invalid:
-                        if invalid.code == "normalization_unavailable":
-                            raise
-                        continue
-                    mechanics = getattr(game.level, "mechanics", {}) or {}
-                    predicted, _ = step(game.position, game.velocity, suggestion.vector, self._physics_for(game),
-                                        previous_word=self.embeddings.lookup(game.last_word),
-                                        attractor=self.embeddings.lookup(mechanics["attractor"]) if mechanics.get("attractor") else None)
-                    score = cosine_similarity(predicted, target)
-                    if score > best_score:
-                        best_score, resolved = score, suggestion
-                if resolved is None:
-                    raise GameError("no_hint_available", "No legal hint is available from this position.")
+            target = self.embeddings.lookup(game.level.target_word)
+            resolved, best_score = None, -float("inf")
+            for candidate, _ in self.semantic.neighbors(game.level.target_word, 128):
+                try:
+                    suggestion = self._resolve_allowed(game, candidate)
+                except GameError as exc:
+                    if exc.code == "normalization_unavailable":
+                        raise
+                    continue
+                mechanics = getattr(game.level, "mechanics", {}) or {}
+                predicted, _ = step(game.position, game.velocity, suggestion.vector, self._physics_for(game),
+                                    previous_word=self.embeddings.lookup(game.last_word),
+                                    attractor=self.embeddings.lookup(mechanics["attractor"]) if mechanics.get("attractor") else None)
+                score = cosine_similarity(predicted, target)
+                if score > best_score:
+                    best_score, resolved = score, suggestion
+            if resolved is None:
+                raise GameError("no_hint_available", "No legal safe hint is available from this position.")
             game.hints_used += 1
             return {**self._resolution_fields(resolved), "remaining": self._hints_limit(game) - game.hints_used}
 

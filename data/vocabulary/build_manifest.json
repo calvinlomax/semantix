@@ -3,11 +3,13 @@
   "eligible_guess_count": 94037,
   "excluded_curated_words": [],
   "filters": "lowercase ASCII letters, 2\u201324 characters, WordNet common lexical evidence or trusted curated seed, blocked families excluded",
+  "hint_word_count": 2585,
   "level_word_count": 2676,
   "requested_guess_limit": 100000,
   "schema_version": 1,
   "sha256": {
     "allowed_guesses.txt": "84b3fc6a6ddc05022bc9ac4b9e82ec438afac60a4c46f1e4d0093c74d5ddd20e",
+    "hint_words.txt": "7d4fc273a37b51ad5b57e089d786dc25f8e731b7ad3b6ac929f74114358fb107",
     "level_words.txt": "7b6c1a3dec3c137398495126ada159bd6c469e64e0b60b391f8670449efdcd2d"
   },
   "sources": {

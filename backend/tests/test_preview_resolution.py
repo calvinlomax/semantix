@@ -63,7 +63,7 @@ def test_normalized_preview_and_submission_match_and_preserve_input(setup, word,
     after = response.json()
     move = after["history"][0]
     for key in ("word", "resolved_word", "resolution", "normalization_message", "position", "position3d",
-                "word_position", "word_position3d", "word_similarity", "similarity_before", "similarity_after", "delta", "efficiency"):
+                "word_position", "word_position3d", "word_similarity", "semantic", "similarity_before", "similarity_after", "delta", "efficiency"):
         assert move[key] == preview[key]
     assert after["map"]["player"] == preview["position"]
     assert after["map3d"]["player"] == preview["position3d"]

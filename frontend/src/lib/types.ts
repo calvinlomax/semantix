@@ -8,7 +8,13 @@ export interface WordResolution {
 export interface MapSpace<T> {
   start: T; target: T; player: T; trail: T[]; landmarks: {word: string; position: T; similarity?: number}[]
 }
+export interface SemanticFeedback {
+  rank: number; vocabulary_size: number; percentile: number; bucket: string
+  versus_best: string; versus_previous: string; same_family: boolean
+  cluster: string; large_semantic_jump: boolean; previous_guess_similarity: number | null
+}
 export interface Move {
+  semantic?: SemanticFeedback
   number: number; word: string; similarity_before: number; similarity_after: number
   delta: number; efficiency: number; position: Point; word_position: Point; power_shot: boolean
   resolved_word?: string; resolution?: string; normalization_message?: string | null
@@ -16,6 +22,7 @@ export interface Move {
   word_similarity?: number
 }
 export interface MovePreview extends WordResolution {
+  semantic?: SemanticFeedback
   game_id: string; expected_move: number; word: string; position: Point; word_position: Point
   position3d: Point3D; word_position3d: Point3D; similarity_before: number; similarity_after: number
   delta: number; efficiency: number; would_win: boolean; power_shot: boolean
@@ -34,7 +41,7 @@ export interface Game {
 }
 export interface ModelStatus {
   status: 'unloaded' | 'loading' | 'ready' | 'error'; name: string; dimensions: number; vocabulary_size: number; message: string
-  target_vocabulary_size?: number; requested_guess_count?: number | null; missing_guess_count?: number
+  hint_vocabulary_size?: number; target_vocabulary_size?: number; requested_guess_count?: number | null; missing_guess_count?: number
   requested_target_count?: number | null; reduced?: boolean | null; memory_mapped?: boolean
 }
 export interface CompletedGame {

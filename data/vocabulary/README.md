@@ -68,3 +68,18 @@ redistributing the generated list.
   Corpus, and ParaCrawl. Its linked documentation contains the full upstream credits.
 - `words.txt` is Semantix's existing manually curated seed spanning nature,
   everyday objects, relationships, art, science, travel, and civic life.
+
+`hint_words.txt` is generated alongside guesses and targets, using only the
+reviewed target seed with wordfreq English Zipf frequency ≥3.0. It has 2,585
+unique source words, and the builder records its SHA-256 and count in
+`build_manifest.json`. It governs hints and visible neighbors independently of
+target membership. Runtime intersects it with the prepared model and removes
+blocked families. Frequencies are used only during preparation; no wordfreq
+dependency is added to production. This selection uses the same wordfreq source
+and attribution described above.
+
+New target selection also measures semantic connectivity, morphological
+redundancy, and safe-neighbor availability against the broad retained model.
+Being present in `level_words.txt` is necessary but no longer sufficient for
+selection into a newly generated catalog. Existing catalog identities remain
+stable until explicit regeneration.

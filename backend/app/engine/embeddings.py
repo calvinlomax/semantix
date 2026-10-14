@@ -131,15 +131,18 @@ class EmbeddingStore(_WordResolver):
         *,
         denylist_path: str | Path | None = None,
         target_vocabulary_path: str | Path | None = None,
+        hint_vocabulary_path: str | Path | None = None,
         require_prepared: bool = False,
         binary: bool = False,
         limit: int | None = None,
     ) -> None:
         self.model_path = Path(model_path)
         self.vocabulary_path = Path(vocabulary_path)
-        # The small matrix is only for puzzle generation, hints, and landmarks.
+        # The small matrix is only for puzzle search and calibration.
         # Runtime guess membership comes from the prepared model itself.
         self.target_vocabulary_path = Path(target_vocabulary_path) if target_vocabulary_path else self.vocabulary_path
+        self.hint_vocabulary_path = Path(hint_vocabulary_path) if hint_vocabulary_path else self.target_vocabulary_path
+        self._hints = ()
         self.require_prepared = require_prepared
         self.denylist_path = Path(denylist_path) if denylist_path else None
         self.binary = binary
@@ -166,6 +169,7 @@ class EmbeddingStore(_WordResolver):
             "exists": self.model_path.is_file(),
             "curated_words": len(self._words),
             "target_vocabulary_size": len(self._words),
+            "hint_vocabulary_size": len(self._hints),
             "requested_guess_count": self._manifest.get("requested_word_count"),
             "missing_guess_count": len(self._manifest.get("missing_words", [])),
             "requested_target_count": self._target_requested_count,
@@ -223,6 +227,9 @@ class EmbeddingStore(_WordResolver):
                 fingerprint.update("\n".join(words).encode())
                 fingerprint.update(matrix.tobytes())
                 self._model, self._words, self._matrix = model, tuple(words), matrix
+                self._hints = tuple(word for word in _read_words(self.hint_vocabulary_path)
+                                    if TOKEN.fullmatch(word) and word in model
+                                    and not self.rule_keys(word) & self._blocked_keys)
                 self._manifest = manifest
                 self._target_requested_count = len(requested_targets)
                 self._indices = {word: index for index, word in enumerate(words)}
@@ -232,6 +239,11 @@ class EmbeddingStore(_WordResolver):
                 self._state, self._error = "error", str(exc)
                 raise ModelUnavailableError(self._error) from exc
         return self
+
+    @property
+    def hint_words(self):
+        self.load()
+        return self._hints
 
     @property
     def words(self) -> tuple[str, ...]:
@@ -272,6 +284,7 @@ class SyntheticEmbeddings(_WordResolver):
         self.words = tuple(sorted(word for word in vectors if word not in self._blocked))
         if not self.words:
             raise ValueError("At least one fixture vector is required.")
+        self.hint_words = self.words
         self.matrix = np.stack([normalize(vectors[word]) for word in self.words])
         if self.matrix.shape[1] != DIMENSIONS:
             raise ValueError("Synthetic fixtures must also use 300 dimensions.")
